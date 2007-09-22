@@ -1,30 +1,38 @@
 %define name	trilinos
 %define version 6.0.17
-%define release %mkrel 4
+%define release %mkrel 5
 
 %define	libaztecoo_major	3.4
 %define	libaztecoo_name		%mklibname aztecoo %{libaztecoo_major}
+%define	develaztecoo_name	%mklibname aztecoo -d
 
 %define	libepetra_major		3.4
 %define	libepetra_name		%mklibname epetra %{libepetra_major}
+%define	develepetra_name	%mklibname epetra -d
 
 %define	libepetraext_major	3.4
 %define	libepetraext_name	%mklibname epetraext %{libepetraext_major}
+%define	develepetraext_name	%mklibname epetraext -d
 
 %define	libifpack_major		3.0
 %define	libifpack_name		%mklibname ifpack %{libifpack_major}
+%define	develifpack_name	%mklibname ifpack -d
 
 %define	libml_major		4.0
 %define	libml_name		%mklibname ml %{libml_major}
+%define	develml_name	%mklibname ml -d
 
-%define	libnox_major		4.1
+%define	libnox_major	4.1
 %define	libnox_name		%mklibname nox %{libnox_major}
+%define	develnox_name	%mklibname nox -d
 
 %define	libteuchos_major	1.2
 %define	libteuchos_name		%mklibname teuchos %{libteuchos_major}
+%define	develteuchos_name	%mklibname teuchos -d
 
 %define	libtriutils_major	1.2
 %define	libtriutils_name	%mklibname triutils %{libtriutils_major}
+%define	develtriutils_name	%mklibname triutils -d
 
 %if %{mdkversion} <= 1020
 %define f77	g77
@@ -69,14 +77,14 @@ arguments via Epetra matrix and vector classes. Finally, AztecOO provide
 additional functionality not found in Aztec and any future enhancements to the
 Aztec package will be available only through the AztecOO interfaces. 
 
-%package -n %{libaztecoo_name}-devel
+%package -n %{develaztecoo_name}
 Summary:	Headers for developing programs that will use aztecoo
 Group:		Development/Other
-Requires:	%{libaztecoo_name} = %{version}
+Requires:	%{libaztecoo_name} = %{version}-%{release}
 Provides:	aztecoo-devel = %{version}-%{release}
-Provides:	libaztecoo-devel = %{version}-%{release}
+Obsoletes:	%{mklibname aztecoo %{libaztecoo_major} -d}
 
-%description -n %{libaztecoo_name}-devel
+%description -n %{develaztecoo_name}
 This package contains the headers that programmers will need to develop
 applications which will use aztecoo.
 
@@ -89,14 +97,14 @@ Epetra provides the fundamental construction routines and services function
 that are required for serial and parallel linear algebra libraries. Epetra
 provides the underlying foundation for all Trilinos so
 
-%package -n %{libepetra_name}-devel
+%package -n %{develepetra_name}
 Summary:	Headers for developing programs that will use epetra
 Group:		Development/Other
-Requires:	%{libepetra_name} = %{version}
+Requires:	%{libepetra_name} = %{version}-%{release}
 Provides:	epetra-devel = %{version}-%{release}
-Provides:	libepetra-devel = %{version}-%{release}
+Obsoletes:	%{mklibname epetra %{libepetra_major} -d}
 
-%description -n %{libepetra_name}-devel
+%description -n %{develepetra_name}
 This package contains the headers that programmers will need to develop
 applications which will use epetra.
 
@@ -109,14 +117,14 @@ EpetraExt provides the fundamental construction routines and services function
 that are required for serial and parallel linear algebra libraries. EpetraExt
 provides the underlying foundation for all Trilinos so
 
-%package -n %{libepetraext_name}-devel
+%package -n %{develepetraext_name}
 Summary:	Headers for developing programs that will use epetraext
 Group:		Development/Other
-Requires:	%{libepetraext_name} = %{version}
+Requires:	%{libepetraext_name} = %{version}-%{release}
 Provides:	epetraext-devel = %{version}-%{release}
-Provides:	libepetraext-devel = %{version}-%{release}
+Obsoletes:	%{mklibname epetraext %{libepetraext_major} -d}
 
-%description -n %{libepetraext_name}-devel
+%description -n %{develepetraext_name}
 This package contains the headers that programmers will need to develop
 applications which will use epetraext.
 
@@ -131,14 +139,14 @@ Epetra_RowMatrix object for construction. IFPACK is part of the Trilinos Solver
 Project and IFPACK object interact well with other Trilinos classes. In
 particular, IFPACK can be used as a preconditioner for AztecOO.
 
-%package -n %{libifpack_name}-devel
+%package -n %{develifpack_name}
 Summary:	Headers for developing programs that will use ifpack
 Group:		Development/Other
-Requires:	%{libifpack_name} = %{version}
+Requires:	%{libifpack_name} = %{version}-%{release}
 Provides:	ifpack-devel = %{version}-%{release}
-Provides:	libifpack-devel = %{version}-%{release}
+Obsoletes:	%{mklibname ifpack %{libifpack_major} -d}
 
-%description -n %{libifpack_name}-devel
+%description -n %{develifpack_name}
 This package contains the headers that programmers will need to develop
 applications which will use ifpack.
 
@@ -150,14 +158,14 @@ Group:		System/Libraries
 ML is Sandia's main multigrid preconditioning package. ML is designed to so
 arising primarily from elliptic PDE discretizations.
 
-%package -n %{libml_name}-devel
+%package -n %{develml_name}
 Summary:	Headers for developing programs that will use ml
 Group:		Development/Other
-Requires:	%{libml_name} = %{version}
+Requires:	%{libml_name} = %{version}-%{release}
 Provides:	ml-devel = %{version}-%{release}
-Provides:	libml-devel = %{version}-%{release}
+Obsoletes:	%{mklibname ml %{libml_major} -d}
 
-%description -n %{libml_name}-devel
+%description -n %{develml_name}
 This package contains the headers that programmers will need to develop
 applications which will use ml.
 
@@ -175,14 +183,14 @@ LOCA, distributed as part of NOX, is short for Library of Continuation
 Algorithms, and its objective is to compute families of solutions to and their
 bifurcations.
 
-%package -n %{libnox_name}-devel
+%package -n %{develnox_name}
 Summary:	Headers for developing programs that will use nox
 Group:		Development/Other
-Requires:	%{libnox_name} = %{version}
+Requires:	%{libnox_name} = %{version}-%{release}
 Provides:	nox-devel = %{version}-%{release}
-Provides:	libnox-devel = %{version}-%{release}
+Obsoletes:	%{mklibname nox %{libnox_major} -d}
 
-%description -n %{libnox_name}-devel
+%description -n %{develnox_name}
 This package contains the headers that programmers will need to develop
 applications which will use nox.
 
@@ -204,14 +212,14 @@ Teuchos provides a suite of common tools for Trilinos for developers to use.
 These tools include BLAS/LAPACK wrappers, smart pointers, parameter lists, XML
 parsers, etc.
 
-%package -n %{libteuchos_name}-devel
+%package -n %{develteuchos_name}
 Summary:	Headers for developing programs that will use teuchos
 Group:		Development/Other
-Requires:	%{libteuchos_name} = %{version}
+Requires:	%{libteuchos_name} = %{version}-%{release}
 Provides:	teuchos-devel = %{version}-%{release}
-Provides:	libteuchos-devel = %{version}-%{release}
+Obsoletes:	%{mklibname teuchos %{libteuchos_major} -d}
 
-%description -n %{libteuchos_name}-devel
+%description -n %{develteuchos_name}
 This package contains the headers that programmers will need to develop
 applications which will use teuchos.
 
@@ -222,14 +230,14 @@ Group:		System/Libraries
 %description -n %{libtriutils_name}
 TriUtils a package of utilities for other Trilinos packages.
 
-%package -n %{libtriutils_name}-devel
+%package -n %{develtriutils_name}
 Summary:	Headers for developing programs that will use triutils
 Group:		Development/Other
-Requires:	%{libtriutils_name} = %{version}
+Requires:	%{libtriutils_name} = %{version}-%{release}
 Provides:	triutils-devel = %{version}-%{release}
-Provides:	libtriutils-devel = %{version}-%{release}
+Obsoletes:	%{mklibname triutils %{libtriutils_major} -d}
 
-%description -n %{libtriutils_name}-devel
+%description -n %{develtriutils_name}
 This package contains the headers that programmers will need to develop
 applications which will use triutils.
 
@@ -240,16 +248,16 @@ applications which will use triutils.
 chmod 644 packages/ml/COPYRIGHT
 
 %build
-aclocal-1.8 -I config
+aclocal -I config
 automake
-autoconf-2.5x
+autoconf
 for package in packages/*; do
    if [ -d $package ]; then
 	pushd $package
 	libtoolize
-	aclocal-1.8 -I config
+	aclocal -I config
 	automake
-	autoconf-2.5x
+	autoconf
 	popd
     fi
 done
@@ -306,7 +314,7 @@ rm -rf %{buildroot}
 %defattr(-,root,root)
 %{_libdir}/libaztecoo-%{libaztecoo_major}.so
 
-%files -n %{libaztecoo_name}-devel
+%files -n %{develaztecoo_name}
 %defattr(-,root,root)
 %doc packages/aztecoo/README
 %{_includedir}/az_*
@@ -322,7 +330,7 @@ rm -rf %{buildroot}
 %{_libdir}/libepetra-%{libepetra_major}.so
 %{_libdir}/libepetra_test-%{libepetra_major}.so
 
-%files -n %{libepetra_name}-devel
+%files -n %{develepetra_name}
 %defattr(-,root,root)
 %{_includedir}/Epetra_*
 %{_libdir}/libepetra.a
@@ -336,7 +344,7 @@ rm -rf %{buildroot}
 %defattr(-,root,root)
 %{_libdir}/libepetraext-%{libepetraext_major}.so
 
-%files -n %{libepetraext_name}-devel
+%files -n %{develepetraext_name}
 %defattr(-,root,root)
 %{_includedir}/EpetraExt_*
 %{_libdir}/libepetraext.a
@@ -347,7 +355,7 @@ rm -rf %{buildroot}
 %defattr(-,root,root)
 %{_libdir}/libifpack-%{libifpack_major}.so
 
-%files -n %{libifpack_name}-devel
+%files -n %{develifpack_name}
 %defattr(-,root,root)
 %doc packages/ifpack/{ChangeLog-IFPACK,README-IFPACK}
 %{_includedir}/Ifpack*
@@ -361,7 +369,7 @@ rm -rf %{buildroot}
 %defattr(-,root,root)
 %{_libdir}/libml-%{libml_major}.so
 
-%files -n %{libml_name}-devel
+%files -n %{develml_name}
 %defattr(-,root,root)
 %doc packages/ml/{README-ML,COPYRIGHT,ChangeLog-ML}
 %{_includedir}/ml_*
@@ -376,7 +384,7 @@ rm -rf %{buildroot}
 %{_libdir}/libnox-%{libnox_major}.so
 %{_libdir}/libloca-%{libnox_major}.so
 
-%files -n %{libnox_name}-devel
+%files -n %{develnox_name}
 %defattr(-,root,root)
 %doc packages/nox/{README,LICENSE}
 %{_includedir}/NOX*
@@ -396,7 +404,7 @@ rm -rf %{buildroot}
 %defattr(-,root,root)
 %{_libdir}/libteuchos-%{libteuchos_major}.so
 
-%files -n %{libteuchos_name}-devel
+%files -n %{develteuchos_name}
 %defattr(-,root,root)
 %{_includedir}/Teuchos_*
 %{_libdir}/libteuchos.a
@@ -407,7 +415,7 @@ rm -rf %{buildroot}
 %defattr(-,root,root)
 %{_libdir}/libtriutils-%{libtriutils_major}.so
 
-%files -n %{libtriutils_name}-devel
+%files -n %{develtriutils_name}
 %defattr(-,root,root)
 %{_includedir}/Trilinos_Util*
 %{_includedir}/Triutils_*
@@ -415,5 +423,3 @@ rm -rf %{buildroot}
 %{_libdir}/libtriutils.a
 %{_libdir}/libtriutils.la
 %{_libdir}/libtriutils.so
-
-
