@@ -58,6 +58,7 @@ BuildRequires:	gcc-gfortran
 BuildRequires:	automake1.8
 BuildRequires:	lapack-devel
 BuildRequires:	mpich2-devel
+BuildRoot:	%{_tmppath}/%{name}-%{version}
 
 %description
 The Trilinos Project is an effort to develop parallel so
