@@ -1,36 +1,36 @@
 %define name	trilinos
-%define version 6.0.17
-%define release %mkrel 6
+%define version 8.0.5
+%define release %mkrel 1
 
-%define	libaztecoo_major	3.4
+%define	libaztecoo_major	3.6
 %define	libaztecoo_name		%mklibname aztecoo %{libaztecoo_major}
 %define	develaztecoo_name	%mklibname aztecoo -d
 
-%define	libepetra_major		3.4
+%define	libepetra_major		3.6
 %define	libepetra_name		%mklibname epetra %{libepetra_major}
 %define	develepetra_name	%mklibname epetra -d
 
-%define	libepetraext_major	3.4
+%define	libepetraext_major	3.6
 %define	libepetraext_name	%mklibname epetraext %{libepetraext_major}
 %define	develepetraext_name	%mklibname epetraext -d
 
-%define	libifpack_major		3.0
+%define	libifpack_major		3.2
 %define	libifpack_name		%mklibname ifpack %{libifpack_major}
 %define	develifpack_name	%mklibname ifpack -d
 
-%define	libml_major		4.0
+%define	libml_major		6.1
 %define	libml_name		%mklibname ml %{libml_major}
 %define	develml_name	%mklibname ml -d
 
-%define	libnox_major	4.1
+%define	libnox_major	8.0
 %define	libnox_name		%mklibname nox %{libnox_major}
 %define	develnox_name	%mklibname nox -d
 
-%define	libteuchos_major	1.2
+%define	libteuchos_major	1.4
 %define	libteuchos_name		%mklibname teuchos %{libteuchos_major}
 %define	develteuchos_name	%mklibname teuchos -d
 
-%define	libtriutils_major	1.2
+%define	libtriutils_major	1.3
 %define	libtriutils_name	%mklibname triutils %{libtriutils_major}
 %define	develtriutils_name	%mklibname triutils -d
 
@@ -47,9 +47,9 @@ Summary:	Parallel solver algorithms and libraries
 License:	LGPL
 Group:		System/Libraries
 URL:		http://software.sandia.gov/trilinos/
-Source:		http://software.sandia.gov/trilinos/%{name}-%{version}.tar.bz2
-Patch0:		%{name}-6.0.15.export.patch
-Patch1:		%{name}-6.0.15.libtool.patch
+Source:		http://software.sandia.gov/trilinos/%{name}-%{version}.tar.gz
+Patch0:		%{name}-8.0.5-destdir.patch
+Patch1:		%{name}-8.0.5-libtool.patch
 %if %{mdkversion} <= 1020
 BuildRequires:	gcc-g77
 %else
@@ -243,25 +243,13 @@ applications which will use triutils.
 
 %prep
 %setup -q
-%patch0 -p 1 -b .export
+%patch0 -p 1 -b .destdir
 %patch1 -p 1 -b .libtool
 chmod 644 packages/ml/COPYRIGHT
 
 %build
-aclocal -I config
-automake
-autoconf
-for package in packages/*; do
-   if [ -d $package ]; then
-	pushd $package
-	libtoolize
-	aclocal -I config
-	automake
-	autoconf
-	popd
-    fi
-done
-%configure \
+autoreconf -i
+%configure2_5x \
     --enable-mpi \
     --with-mpi-libs='-lmpich -lpmpich -lrt' \
     --disable-new_package \
@@ -273,6 +261,8 @@ done
 %install
 rm -rf %{buildroot}
 %makeinstall_std
+rm -rf %{buildroot}%{_datadir}/%{name}
+rm -rf %{buildroot}%{_includedir}/Trilinos_version.h
 chmod 644 %{buildroot}%{_libdir}/*.la
 
 %clean
@@ -320,6 +310,7 @@ rm -rf %{buildroot}
 %{_includedir}/az_*
 %{_includedir}/AztecOO*
 %{_includedir}/AZOO_iterate.h
+%{_includedir}/AZOO_printf.h
 %{_includedir}/Aztec2Petra.h
 %{_libdir}/libaztecoo.a
 %{_libdir}/libaztecoo.la
@@ -328,7 +319,6 @@ rm -rf %{buildroot}
 %files -n %{libepetra_name}
 %defattr(-,root,root)
 %{_libdir}/libepetra-%{libepetra_major}.so
-%{_libdir}/libepetra_test-%{libepetra_major}.so
 
 %files -n %{develepetra_name}
 %defattr(-,root,root)
@@ -336,9 +326,6 @@ rm -rf %{buildroot}
 %{_libdir}/libepetra.a
 %{_libdir}/libepetra.la
 %{_libdir}/libepetra.so
-%{_libdir}/libepetra_test.a
-%{_libdir}/libepetra_test.la
-%{_libdir}/libepetra_test.so
 
 %files -n %{libepetraext_name}
 %defattr(-,root,root)
@@ -395,10 +382,6 @@ rm -rf %{buildroot}
 %{_libdir}/libloca.a
 %{_libdir}/libloca.la
 %{_libdir}/libloca.so
-
-%files -n teuchos
-%defattr(-,root,root)
-%{_bindir}/*
 
 %files -n %{libteuchos_name}
 %defattr(-,root,root)
