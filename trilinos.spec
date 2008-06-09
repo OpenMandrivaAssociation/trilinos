@@ -268,37 +268,69 @@ chmod 644 %{buildroot}%{_libdir}/*.la
 %clean
 rm -rf %{buildroot}
 
+%if %mdkversion < 200900
 %post -n %{libaztecoo_name} -p /sbin/ldconfig
+%endif
 
+%if %mdkversion < 200900
 %postun -n %{libaztecoo_name} -p /sbin/ldconfig
+%endif
 
+%if %mdkversion < 200900
 %post -n %{libepetra_name} -p /sbin/ldconfig
+%endif
 
+%if %mdkversion < 200900
 %postun -n %{libepetra_name} -p /sbin/ldconfig
+%endif
 
+%if %mdkversion < 200900
 %post -n %{libepetraext_name} -p /sbin/ldconfig
+%endif
 
+%if %mdkversion < 200900
 %postun -n %{libepetraext_name} -p /sbin/ldconfig
+%endif
 
+%if %mdkversion < 200900
 %post -n %{libifpack_name} -p /sbin/ldconfig
+%endif
 
+%if %mdkversion < 200900
 %postun -n %{libifpack_name} -p /sbin/ldconfig
+%endif
 
+%if %mdkversion < 200900
 %post -n %{libml_name} -p /sbin/ldconfig
+%endif
 
+%if %mdkversion < 200900
 %postun -n %{libml_name} -p /sbin/ldconfig
+%endif
 
+%if %mdkversion < 200900
 %post -n %{libnox_name} -p /sbin/ldconfig
+%endif
 
+%if %mdkversion < 200900
 %postun -n %{libnox_name} -p /sbin/ldconfig
+%endif
 
+%if %mdkversion < 200900
 %post -n %{libteuchos_name} -p /sbin/ldconfig
+%endif
 
+%if %mdkversion < 200900
 %postun -n %{libteuchos_name} -p /sbin/ldconfig
+%endif
 
+%if %mdkversion < 200900
 %post -n %{libtriutils_name} -p /sbin/ldconfig
+%endif
 
+%if %mdkversion < 200900
 %postun -n %{libtriutils_name} -p /sbin/ldconfig
+%endif
 
 %files -n %{libaztecoo_name}
 %defattr(-,root,root)
