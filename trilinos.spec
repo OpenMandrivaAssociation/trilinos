@@ -1,5 +1,5 @@
 %define name	trilinos
-%define version 8.0.5
+%define version 8.0.7
 %define release %mkrel 1
 
 %define	libaztecoo_major	3.6
@@ -46,8 +46,8 @@ Release:	%{release}
 Summary:	Parallel solver algorithms and libraries 
 License:	LGPL
 Group:		System/Libraries
-URL:		http://software.sandia.gov/trilinos/
-Source:		http://software.sandia.gov/trilinos/%{name}-%{version}.tar.gz
+URL:		http://trilinos.sandia.gov/
+Source:		http://trilinos.sandia.gov/download/files/%name-%version.tar.gz
 Patch0:		%{name}-8.0.5-destdir.patch
 Patch1:		%{name}-8.0.5-libtool.patch
 %if %{mdkversion} <= 1020
@@ -57,6 +57,7 @@ BuildRequires:	gcc-gfortran
 %endif
 BuildRequires:	automake1.8
 BuildRequires:	lapack-devel
+BuildRequires:	openmpi-devel
 BuildRequires:	mpich2-devel
 BuildRoot:	%{_tmppath}/%{name}-%{version}
 
@@ -194,6 +195,7 @@ Obsoletes:	%{mklibname nox %{libnox_major} -d}
 This package contains the headers that programmers will need to develop
 applications which will use nox.
 
+%if 0
 %package -n teuchos
 Summary:	The Trilinos Tools Library
 Group:		System/Libraries
@@ -202,6 +204,7 @@ Group:		System/Libraries
 Teuchos provides a suite of common tools for Trilinos for developers to use.
 These tools include BLAS/LAPACK wrappers, smart pointers, parameter lists, XML
 parsers, etc.
+%endif
 
 %package -n %{libteuchos_name}
 Summary:	Main library for teuchos
