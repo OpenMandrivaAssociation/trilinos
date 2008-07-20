@@ -268,6 +268,7 @@ rm -rf %{buildroot}
 %makeinstall_std
 rm -rf %{buildroot}%{_datadir}/%{name}
 rm -rf %{buildroot}%{_includedir}/Trilinos_version.h
+rm -rf %{buildroot}%{_includedir}/*.pl
 chmod 644 %{buildroot}%{_libdir}/*.la
 
 %clean
