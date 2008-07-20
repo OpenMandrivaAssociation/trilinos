@@ -44,7 +44,7 @@ Name:		%{name}
 Version:	%{version}
 Release:	%{release}
 Summary:	Parallel solver algorithms and libraries 
-License:	LGPL
+License:	GPLv2
 Group:		System/Libraries
 URL:		http://trilinos.sandia.gov/
 Source:		http://trilinos.sandia.gov/download/files/%name-%version.tar.gz
@@ -253,7 +253,7 @@ chmod 644 packages/ml/COPYRIGHT
 
 %build
 autoreconf -i
-
+%define _disable_ld_no_undefined 1
 %configure2_5x \
     --enable-mpi \
     --with-mpi-libs='-lmpich -lpmpich -lrt' \
