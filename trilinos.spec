@@ -55,9 +55,8 @@ BuildRequires:	gcc-g77
 %else
 BuildRequires:	gcc-gfortran
 %endif
-BuildRequires:	automake1.8
+BuildRequires:	automake
 BuildRequires:	lapack-devel
-BuildRequires:	openmpi-devel
 BuildRequires:	mpich2-devel
 BuildRoot:	%{_tmppath}/%{name}-%{version}
 
