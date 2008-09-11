@@ -1,5 +1,5 @@
 %define name	trilinos
-%define version 8.0.7
+%define version 8.0.8
 %define release %mkrel 1
 
 %define	libaztecoo_major	3.6
@@ -49,8 +49,6 @@ Group:		System/Libraries
 URL:		http://trilinos.sandia.gov/
 Source:		http://trilinos.sandia.gov/download/files/%name-%version.tar.gz
 Patch1:		%{name}-8.0.5-libtool.patch
-Patch2:		trilinos-8.0.7-gcc4.3.patch
-Patch3:		trilinos-8.0.7-fix-includedir.patch
 %if %{mdkversion} <= 1020
 BuildRequires:	gcc-g77
 %else
@@ -247,8 +245,6 @@ applications which will use triutils.
 %prep
 %setup -q
 %patch1 -p 1 -b .libtool
-%patch2 -p0
-%patch3 -p0
 chmod 644 packages/ml/COPYRIGHT
 
 %build
