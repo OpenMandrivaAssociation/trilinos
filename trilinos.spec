@@ -1,36 +1,36 @@
 %define name	trilinos
-%define version 8.0.8
+%define version 9.0.2
 %define release %mkrel 1
 
-%define	libaztecoo_major	3.6
+%define	libaztecoo_major	3.7
 %define	libaztecoo_name		%mklibname aztecoo %{libaztecoo_major}
 %define	develaztecoo_name	%mklibname aztecoo -d
 
-%define	libepetra_major		3.6
+%define	libepetra_major		3.7
 %define	libepetra_name		%mklibname epetra %{libepetra_major}
 %define	develepetra_name	%mklibname epetra -d
 
-%define	libepetraext_major	3.6
+%define	libepetraext_major	3.7
 %define	libepetraext_name	%mklibname epetraext %{libepetraext_major}
 %define	develepetraext_name	%mklibname epetraext -d
 
-%define	libifpack_major		3.2
+%define	libifpack_major		3.3
 %define	libifpack_name		%mklibname ifpack %{libifpack_major}
 %define	develifpack_name	%mklibname ifpack -d
 
-%define	libml_major		6.1
+%define	libml_major		6.2
 %define	libml_name		%mklibname ml %{libml_major}
 %define	develml_name	%mklibname ml -d
 
-%define	libnox_major	8.0
+%define	libnox_major	9.0
 %define	libnox_name		%mklibname nox %{libnox_major}
 %define	develnox_name	%mklibname nox -d
 
-%define	libteuchos_major	1.4
+%define	libteuchos_major	1.5
 %define	libteuchos_name		%mklibname teuchos %{libteuchos_major}
 %define	develteuchos_name	%mklibname teuchos -d
 
-%define	libtriutils_major	1.3
+%define	libtriutils_major	1.4d
 %define	libtriutils_name	%mklibname triutils %{libtriutils_major}
 %define	develtriutils_name	%mklibname triutils -d
 
@@ -48,7 +48,8 @@ License:	GPLv2
 Group:		System/Libraries
 URL:		http://trilinos.sandia.gov/
 Source:		http://trilinos.sandia.gov/download/files/%name-%version.tar.gz
-Patch1:		%{name}-8.0.5-libtool.patch
+Patch1:		%{name}-9.0.2-libtool.patch
+Patch2:		%{name}-9.0.2-fix-format-errors.patch
 %if %{mdkversion} <= 1020
 BuildRequires:	gcc-g77
 %else
@@ -245,6 +246,7 @@ applications which will use triutils.
 %prep
 %setup -q
 %patch1 -p 1 -b .libtool
+%patch2 -p 1 -b .format
 chmod 644 packages/ml/COPYRIGHT
 
 %build
