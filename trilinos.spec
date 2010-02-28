@@ -1,6 +1,6 @@
 %define name	trilinos
 %define version 9.0.2
-%define release %mkrel 2
+%define release %mkrel 3
 
 %define	libaztecoo_major	3.7
 %define	libaztecoo_name		%mklibname aztecoo %{libaztecoo_major}
@@ -50,6 +50,7 @@ URL:		http://trilinos.sandia.gov/
 Source:		http://trilinos.sandia.gov/download/files/%name-%version.tar.gz
 Patch1:		%{name}-9.0.2-libtool.patch
 Patch2:		%{name}-9.0.2-fix-format-errors.patch
+Patch3:		%{name}-9.0.2-fix-install.patch
 %if %{mdkversion} <= 1020
 BuildRequires:	gcc-g77
 %else
@@ -247,6 +248,7 @@ applications which will use triutils.
 %setup -q
 %patch1 -p 1 -b .libtool
 %patch2 -p 1 -b .format
+%patch3 -p 1 -b .install
 chmod 644 packages/ml/COPYRIGHT
 
 %build
