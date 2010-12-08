@@ -1,6 +1,6 @@
 %define name	trilinos
 %define version 9.0.2
-%define release %mkrel 3
+%define release %mkrel 4
 
 %define	libaztecoo_major	3.7
 %define	libaztecoo_name		%mklibname aztecoo %{libaztecoo_major}
