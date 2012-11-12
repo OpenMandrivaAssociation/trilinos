@@ -1,0 +1,3802 @@
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/amesos/configure.ac trilinos-9.0.2-libtool/packages/amesos/configure.ac
+--- trilinos-9.0.2/packages/amesos/configure.ac	2008-09-23 17:36:06.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/amesos/configure.ac	2009-02-19 22:25:38.000000000 +0100
+@@ -141,7 +141,7 @@
+ if test "X$ac_cv_use_fortran" != "Xno"; then
+ AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+ fi
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for --enable-debug, --enable-optimize, --enable-profile, --enable-purify
+@@ -196,6 +196,7 @@
+ # Checks for header files
+ # ------------------------------------------------------------------------
+ 
++AC_LANG_PUSH(C++)
+ AC_CHECK_HEADERS([cstdlib stdlib.h], [break],)
+ AC_CHECK_HEADERS([cstdio stdio.h], [break],)
+ AC_CHECK_HEADERS([cassert assert.h], [break],)
+@@ -212,6 +213,7 @@
+ 
+ AC_CHECK_HEADERS([vector map time.h fstream sys/utsname.h unistd.h],,,)
+ AC_CHECK_HEADERS([sys/time.h sys/resource.h],,,)
++AC_LANG_POP(C++)
+ 
+ if test "X$ac_cv_header_cstdlib" != "Xyes" && test "X$ac_cv_header_stdlib_h" != "Xyes"; then
+   AC_MSG_ERROR([[Cannot find cstdlib or stdlib.h.  Amesos requires at least one or the other.  See http://software.sandia.gov/trilinos/packages/amesos/ for details]])
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/amesos/example/Makefile.am trilinos-9.0.2-libtool/packages/amesos/example/Makefile.am
+--- trilinos-9.0.2/packages/amesos/example/Makefile.am	2007-09-06 16:41:42.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/amesos/example/Makefile.am	2009-02-19 22:18:49.000000000 +0100
+@@ -74,22 +74,22 @@
+ EXTRA_DIST = In_662_bus.rsa _stratimikos_amesos_lapack.xml _FourByFour.mtx
+ 
+ example_AmesosFactory_SOURCES      = $(srcdir)/example_AmesosFactory.cpp
+-example_AmesosFactory_DEPENDENCIES = $(top_builddir)/src/libamesos.a 
++example_AmesosFactory_DEPENDENCIES = $(top_builddir)/src/libamesos.la 
+ example_AmesosFactory_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ example_AmesosFactory_LDADD        = $(EXAMPLE_LIBS)
+ 
+ example_AmesosFactory_Tridiag_SOURCES      = $(srcdir)/example_AmesosFactory_Tridiag.cpp
+-example_AmesosFactory_Tridiag_DEPENDENCIES = $(top_builddir)/src/libamesos.a
++example_AmesosFactory_Tridiag_DEPENDENCIES = $(top_builddir)/src/libamesos.la
+ example_AmesosFactory_Tridiag_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ example_AmesosFactory_Tridiag_LDADD        = $(EXAMPLE_LIBS)
+ 
+ example_AmesosFactory_HB_SOURCES      = $(srcdir)/example_AmesosFactory_HB.cpp 
+-example_AmesosFactory_HB_DEPENDENCIES = $(top_builddir)/src/libamesos.a 
++example_AmesosFactory_HB_DEPENDENCIES = $(top_builddir)/src/libamesos.la 
+ example_AmesosFactory_HB_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ example_AmesosFactory_HB_LDADD        = $(EXAMPLE_LIBS)
+ 
+ compare_solvers_SOURCES      = $(srcdir)/compare_solvers.cpp
+-compare_solvers_DEPENDENCIES = $(top_builddir)/src/libamesos.a 
++compare_solvers_DEPENDENCIES = $(top_builddir)/src/libamesos.la 
+ compare_solvers_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ compare_solvers_LDADD        = $(EXAMPLE_LIBS)
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/amesos/src/Makefile.am trilinos-9.0.2-libtool/packages/amesos/src/Makefile.am
+--- trilinos-9.0.2/packages/amesos/src/Makefile.am	2008-08-15 00:44:30.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/amesos/src/Makefile.am	2009-02-19 22:18:49.000000000 +0100
+@@ -423,7 +423,7 @@
+ # Amesos library specifications
+ # ------------------------------------------------------------------------
+ 
+-AMESOS_LIB = libamesos.a
++AMESOS_LIB = libamesos.la
+ 
+ 
+ AMESOS_H = \
+@@ -448,7 +448,7 @@
+ 	$(srcdir)/Amesos_TestRowMatrix.h
+ 
+ 
+-libamesos_a_SOURCES = \
++libamesos_la_SOURCES = \
+ 	$(SUPPORT) \
+ 	$(DSCPACK) \
+ 	$(UMFPACK) \
+@@ -466,7 +466,7 @@
+ 	$(LAPACK) \
+ 	$(COMP)
+ 
+-EXTRA_libamesos_a_SOURCES = \
++EXTRA_libamesos_la_SOURCES = \
+ 	$(EXTRA_MPI) \
+ 	$(EXTRA_MPI_H) \
+ 	$(EXTRA_MPISMP) \
+@@ -496,13 +496,14 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libamesos_a_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD)
++libamesos_la_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD)
++libamesos_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+-lib_LIBRARIES = $(AMESOS_LIB)
++lib_LTLIBRARIES = $(AMESOS_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/amesos/test/Test_Basic/Makefile.am trilinos-9.0.2-libtool/packages/amesos/test/Test_Basic/Makefile.am
+--- trilinos-9.0.2/packages/amesos/test/Test_Basic/Makefile.am	2008-08-15 00:44:30.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/amesos/test/Test_Basic/Makefile.am	2009-02-19 22:18:49.000000000 +0100
+@@ -132,10 +132,10 @@
+ endif
+ 
+ 
+-TestBasic_DEPENDENCIES = $(top_builddir)/src/libamesos.a
++TestBasic_DEPENDENCIES = $(top_builddir)/src/libamesos.la
+ TestBasic_LDADD        = ${EXAMPLE_LIBS}
+ 
+-amesos_test_DEPENDENCIES = $(top_builddir)/src/libamesos.a
++amesos_test_DEPENDENCIES = $(top_builddir)/src/libamesos.la
+ amesos_test_LDADD        = ${EXAMPLE_LIBS}
+ 
+ EXTRA_DIST = $(srcdir)/662_bus.rsa \
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/amesos/test/Test_Detailed/Makefile.am trilinos-9.0.2-libtool/packages/amesos/test/Test_Detailed/Makefile.am
+--- trilinos-9.0.2/packages/amesos/test/Test_Detailed/Makefile.am	2007-07-07 00:18:25.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/amesos/test/Test_Detailed/Makefile.am	2009-02-19 22:18:49.000000000 +0100
+@@ -21,6 +21,6 @@
+ endif
+ 
+ Test_Detailed_SOURCES      = $(srcdir)/cxx_main.cpp
+-Test_Detailed_DEPENDENCIES = $(top_builddir)/src/libamesos.a
++Test_Detailed_DEPENDENCIES = $(top_builddir)/src/libamesos.la
+ Test_Detailed_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ Test_Detailed_LDADD        = $(EXAMPLE_LIBS)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/amesos/test/Test_DSCPACK/Makefile.am trilinos-9.0.2-libtool/packages/amesos/test/Test_DSCPACK/Makefile.am
+--- trilinos-9.0.2/packages/amesos/test/Test_DSCPACK/Makefile.am	2007-07-07 00:18:24.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/amesos/test/Test_DSCPACK/Makefile.am	2009-02-19 22:18:49.000000000 +0100
+@@ -21,6 +21,6 @@
+ endif
+ 
+ Test_DSCPACK_SOURCES      = $(srcdir)/cxx_main.cpp
+-Test_DSCPACK_DEPENDENCIES = $(top_builddir)/src/libamesos.a
++Test_DSCPACK_DEPENDENCIES = $(top_builddir)/src/libamesos.la
+ Test_DSCPACK_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ Test_DSCPACK_LDADD        = $(EXAMPLE_LIBS)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/amesos/test/Test_Epetra_CrsMatrix/Makefile.am trilinos-9.0.2-libtool/packages/amesos/test/Test_Epetra_CrsMatrix/Makefile.am
+--- trilinos-9.0.2/packages/amesos/test/Test_Epetra_CrsMatrix/Makefile.am	2007-07-07 00:18:26.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/amesos/test/Test_Epetra_CrsMatrix/Makefile.am	2009-02-19 22:18:49.000000000 +0100
+@@ -17,6 +17,6 @@
+ noinst_PROGRAMS = $(TEST)
+ 
+ Test_Epetra_CrsMatrix_SOURCES      = $(srcdir)/cxx_main.cpp
+-Test_Epetra_CrsMatrix_DEPENDENCIES = $(top_builddir)/src/libamesos.a
++Test_Epetra_CrsMatrix_DEPENDENCIES = $(top_builddir)/src/libamesos.la
+ Test_Epetra_CrsMatrix_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ Test_Epetra_CrsMatrix_LDADD        = $(EXAMPLE_LIBS)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/amesos/test/Test_Epetra_RowMatrix/Makefile.am trilinos-9.0.2-libtool/packages/amesos/test/Test_Epetra_RowMatrix/Makefile.am
+--- trilinos-9.0.2/packages/amesos/test/Test_Epetra_RowMatrix/Makefile.am	2007-07-07 00:18:26.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/amesos/test/Test_Epetra_RowMatrix/Makefile.am	2009-02-19 22:18:49.000000000 +0100
+@@ -21,6 +21,6 @@
+ endif
+ 
+ Test_Epetra_RowMatrix_SOURCES      = $(srcdir)/cxx_main.cpp
+-Test_Epetra_RowMatrix_DEPENDENCIES = $(top_builddir)/src/libamesos.a
++Test_Epetra_RowMatrix_DEPENDENCIES = $(top_builddir)/src/libamesos.la
+ Test_Epetra_RowMatrix_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ Test_Epetra_RowMatrix_LDADD        = $(EXAMPLE_LIBS)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/amesos/test/Test_KLU/Makefile.am trilinos-9.0.2-libtool/packages/amesos/test/Test_KLU/Makefile.am
+--- trilinos-9.0.2/packages/amesos/test/Test_KLU/Makefile.am	2007-07-07 00:18:26.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/amesos/test/Test_KLU/Makefile.am	2009-02-19 22:18:49.000000000 +0100
+@@ -25,6 +25,6 @@
+ endif
+ 
+ Test_KLU_SOURCES      = $(srcdir)/cxx_main.cpp
+-Test_KLU_DEPENDENCIES = $(top_builddir)/src/libamesos.a
++Test_KLU_DEPENDENCIES = $(top_builddir)/src/libamesos.la
+ Test_KLU_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ Test_KLU_LDADD = $(EXAMPLE_LIBS)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/amesos/test/Test_LAPACK/Makefile.am trilinos-9.0.2-libtool/packages/amesos/test/Test_LAPACK/Makefile.am
+--- trilinos-9.0.2/packages/amesos/test/Test_LAPACK/Makefile.am	2007-07-07 00:18:27.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/amesos/test/Test_LAPACK/Makefile.am	2009-02-19 22:18:49.000000000 +0100
+@@ -21,6 +21,6 @@
+ endif
+ 
+ Test_LAPACK_SOURCES      = $(srcdir)/cxx_main.cpp
+-Test_LAPACK_DEPENDENCIES = $(top_builddir)/src/libamesos.a
++Test_LAPACK_DEPENDENCIES = $(top_builddir)/src/libamesos.la
+ Test_LAPACK_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ Test_LAPACK_LDADD        = $(EXAMPLE_LIBS)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/amesos/test/Test_MultipleSolves/Makefile.am trilinos-9.0.2-libtool/packages/amesos/test/Test_MultipleSolves/Makefile.am
+--- trilinos-9.0.2/packages/amesos/test/Test_MultipleSolves/Makefile.am	2007-07-07 00:18:29.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/amesos/test/Test_MultipleSolves/Makefile.am	2009-02-19 22:18:49.000000000 +0100
+@@ -21,6 +21,6 @@
+ endif
+ 
+ Test_MultipleSolves_SOURCES      = $(srcdir)/cxx_main.cpp
+-Test_MultipleSolves_DEPENDENCIES = $(top_builddir)/src/libamesos.a
++Test_MultipleSolves_DEPENDENCIES = $(top_builddir)/src/libamesos.la
+ Test_MultipleSolves_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ Test_MultipleSolves_LDADD        = $(EXAMPLE_LIBS)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/amesos/test/Test_MUMPS/Makefile.am trilinos-9.0.2-libtool/packages/amesos/test/Test_MUMPS/Makefile.am
+--- trilinos-9.0.2/packages/amesos/test/Test_MUMPS/Makefile.am	2007-07-07 00:18:28.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/amesos/test/Test_MUMPS/Makefile.am	2009-02-19 22:18:49.000000000 +0100
+@@ -21,6 +21,6 @@
+ endif
+ 
+ Test_MUMPS_SOURCES      = $(srcdir)/cxx_main.cpp
+-Test_MUMPS_DEPENDENCIES = $(top_builddir)/src/libamesos.a
++Test_MUMPS_DEPENDENCIES = $(top_builddir)/src/libamesos.la
+ Test_MUMPS_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ Test_MUMPS_LDADD        = $(EXAMPLE_LIBS)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/amesos/test/TestOptions/Makefile.am trilinos-9.0.2-libtool/packages/amesos/test/TestOptions/Makefile.am
+--- trilinos-9.0.2/packages/amesos/test/TestOptions/Makefile.am	2007-07-07 00:18:22.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/amesos/test/TestOptions/Makefile.am	2009-02-19 22:18:49.000000000 +0100
+@@ -21,7 +21,7 @@
+ noinst_PROGRAMS = $(TEST) 
+ 
+ # if HAVE_AMESOS_EPETRAEXT
+-#    EPETRA_EXT_LIB = 	$(top_builddir)/../epetraext/src/libepetraext.a 
++#    EPETRA_EXT_LIB = 	$(top_builddir)/../epetraext/src/libepetraext.la 
+ #    EPETRA_EXT_INCLUDE =	-I$(top_srcdir)/../epetraext/src/transform -I$(top_builddir)/../epetraext/src/transform -I$(top_srcdir)/../epetraext/src -I$(top_builddir)/../epetraext/src 
+ # else
+ #    EPETRA_EXT_LIB = 
+@@ -60,5 +60,5 @@
+ 	$(EXTRA_AMESOS_TRIUTILS_TEST) \
+ 	$(EXTRA_TRIVIAL_TEST)
+ 
+-TestOptions_DEPENDENCIES = $(top_builddir)/src/libamesos.a
++TestOptions_DEPENDENCIES = $(top_builddir)/src/libamesos.la
+ TestOptions_LDADD = $(EXAMPLE_LIBS)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/amesos/test/Test_Performance/Makefile.am trilinos-9.0.2-libtool/packages/amesos/test/Test_Performance/Makefile.am
+--- trilinos-9.0.2/packages/amesos/test/Test_Performance/Makefile.am	2007-07-07 00:18:29.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/amesos/test/Test_Performance/Makefile.am	2009-02-19 22:18:49.000000000 +0100
+@@ -17,6 +17,6 @@
+ noinst_PROGRAMS = $(TEST)
+ 
+ Test_Performance_SOURCES      = $(srcdir)/Amesos_Performance.cpp
+-Test_Performance_DEPENDENCIES = $(top_builddir)/src/libamesos.a
++Test_Performance_DEPENDENCIES = $(top_builddir)/src/libamesos.la
+ Test_Performance_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ Test_Performance_LDADD        = $(EXAMPLE_LIBS)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/amesos/test/Test_SuperLU/Makefile.am trilinos-9.0.2-libtool/packages/amesos/test/Test_SuperLU/Makefile.am
+--- trilinos-9.0.2/packages/amesos/test/Test_SuperLU/Makefile.am	2007-07-07 00:18:31.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/amesos/test/Test_SuperLU/Makefile.am	2009-02-19 22:18:49.000000000 +0100
+@@ -21,6 +21,6 @@
+ endif
+ 
+ Test_SuperLU_SOURCES      = $(srcdir)/cxx_main.cpp
+-Test_SuperLU_DEPENDENCIES = $(top_builddir)/src/libamesos.a
++Test_SuperLU_DEPENDENCIES = $(top_builddir)/src/libamesos.la
+ Test_SuperLU_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ Test_SuperLU_LDADD        = $(EXAMPLE_LIBS)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/amesos/test/Test_SuperLU_DIST/Makefile.am trilinos-9.0.2-libtool/packages/amesos/test/Test_SuperLU_DIST/Makefile.am
+--- trilinos-9.0.2/packages/amesos/test/Test_SuperLU_DIST/Makefile.am	2007-07-07 00:18:32.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/amesos/test/Test_SuperLU_DIST/Makefile.am	2009-02-19 22:18:49.000000000 +0100
+@@ -21,6 +21,6 @@
+ endif
+ 
+ Test_SuperLU_DIST_SOURCES      = $(srcdir)/cxx_main.cpp
+-Test_SuperLU_DIST_DEPENDENCIES = $(top_builddir)/src/libamesos.a
++Test_SuperLU_DIST_DEPENDENCIES = $(top_builddir)/src/libamesos.la
+ Test_SuperLU_DIST_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ Test_SuperLU_DIST_LDADD        = $(EXAMPLE_LIBS)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/amesos/test/Test_UMFPACK/Makefile.am trilinos-9.0.2-libtool/packages/amesos/test/Test_UMFPACK/Makefile.am
+--- trilinos-9.0.2/packages/amesos/test/Test_UMFPACK/Makefile.am	2007-07-07 00:18:33.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/amesos/test/Test_UMFPACK/Makefile.am	2009-02-19 22:18:49.000000000 +0100
+@@ -21,6 +21,6 @@
+ endif
+ 
+ Test_UMFPACK_SOURCES      = $(srcdir)/cxx_main.cpp
+-Test_UMFPACK_DEPENDENCIES = $(top_builddir)/src/libamesos.a
++Test_UMFPACK_DEPENDENCIES = $(top_builddir)/src/libamesos.la
+ Test_UMFPACK_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ Test_UMFPACK_LDADD        = $(EXAMPLE_LIBS)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/anasazi/configure.ac trilinos-9.0.2-libtool/packages/anasazi/configure.ac
+--- trilinos-9.0.2/packages/anasazi/configure.ac	2008-10-15 17:15:08.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/anasazi/configure.ac	2009-02-19 22:19:31.000000000 +0100
+@@ -126,7 +126,7 @@
+ AC_PROG_CC(cc gcc)
+ AC_PROG_CXX(CC g++ gcc c++ cxx)
+ #AC_PROG_F77(f77 g77 f90 xlf90)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for extra flags
+@@ -164,6 +164,7 @@
+ # Checks for header files - used in Anasazi_ConfigDefs.h 
+ # ------------------------------------------------------------------------
+ 
++AC_LANG_PUSH(C++)
+ AC_CHECK_HEADERS([cstdlib stdlib.h], [break],)
+ AC_CHECK_HEADERS([cstdio stdio.h], [break],)
+ # AC_CHECK_HEADERS([cassert assert.h], [break],)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/anasazi/src/Makefile.am trilinos-9.0.2-libtool/packages/anasazi/src/Makefile.am
+--- trilinos-9.0.2/packages/anasazi/src/Makefile.am	2008-07-29 03:02:51.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/anasazi/src/Makefile.am	2009-02-19 22:18:54.000000000 +0100
+@@ -184,7 +184,7 @@
+ # New_Package library specifications
+ # ------------------------------------------------------------------------
+ #np# replace new_package with the name of the package being autotool'ed here
+-ANASAZI_LIB = libanasazi.a
++ANASAZI_LIB = libanasazi.la
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+ ANASAZI_H = \
+@@ -199,7 +199,7 @@
+ 	$(MPI_H) 
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-libanasazi_a_SOURCES = \
++libanasazi_la_SOURCES = \
+ 	$(CORE) \
+ 	$(UTIL) \
+ 	$(UNIPROC) \
+@@ -209,7 +209,7 @@
+ 	$(MPI) 
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-EXTRA_libanasazi_a_SOURCES = \
++EXTRA_libanasazi_la_SOURCES = \
+ 	$(EXTRA_MPI) \
+ 	$(EXTRA_MPI_H) 
+ 
+@@ -240,14 +240,15 @@
+ # ------------------------------------------------------------------------
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-libanasazi_a_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD)
++libanasazi_la_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD)
++libanasazi_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-lib_LIBRARIES = $(ANASAZI_LIB)
++lib_LTLIBRARIES = $(ANASAZI_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/anasazi/test/BlockDavidson/Makefile.am trilinos-9.0.2-libtool/packages/anasazi/test/BlockDavidson/Makefile.am
+--- trilinos-9.0.2/packages/anasazi/test/BlockDavidson/Makefile.am	2008-06-26 09:45:22.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/anasazi/test/BlockDavidson/Makefile.am	2009-02-19 22:20:25.000000000 +0100
+@@ -68,13 +68,13 @@
+ #np# One DEPENDENCIES primary is needed for each exe.  List any libraries that the 
+ #np# exe depends on.  (This primary is not absolutely essential.)
+ BlockDavidson_complex_test_DEPENDENCIES = \
+-	$(top_builddir)/src/libanasazi.a \
+-	$(top_builddir)/../triutils/src/libtriutils.a \
+-	$(top_builddir)/../teuchos/src/libteuchos.a
++	$(top_builddir)/src/libanasazi.la \
++	$(top_builddir)/../triutils/src/libtriutils.la \
++	$(top_builddir)/../teuchos/src/libteuchos.la
+ 
+ BlockDavidson_complex_lap_test_DEPENDENCIES = \
+-	$(top_builddir)/src/libanasazi.a \
+-	$(top_builddir)/../teuchos/src/libteuchos.a
++	$(top_builddir)/src/libanasazi.la \
++	$(top_builddir)/../teuchos/src/libteuchos.la
+ 
+ #np# One CXXFLAGS primary can be defined for each exe.  Include any -I's necessary for 
+ #np# building the exe.
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/anasazi/test/BlockKrylovSchur/Makefile.am trilinos-9.0.2-libtool/packages/anasazi/test/BlockKrylovSchur/Makefile.am
+--- trilinos-9.0.2/packages/anasazi/test/BlockKrylovSchur/Makefile.am	2008-10-15 17:15:09.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/anasazi/test/BlockKrylovSchur/Makefile.am	2009-02-19 22:20:57.000000000 +0100
+@@ -69,13 +69,13 @@
+ #np# One DEPENDENCIES primary is needed for each exe.  List any libraries that the 
+ #np# exe depends on.  (This primary is not absolutely essential.)
+ BlockKrylovSchur_complex_test_DEPENDENCIES = \
+-	$(top_builddir)/src/libanasazi.a \
+-	$(top_builddir)/../triutils/src/libtriutils.a \
+-	$(top_builddir)/../teuchos/src/libteuchos.a
++	$(top_builddir)/src/libanasazi.la \
++	$(top_builddir)/../triutils/src/libtriutils.la \
++	$(top_builddir)/../teuchos/src/libteuchos.la
+ 
+ BlockKrylovSchur_complex_lap_test_DEPENDENCIES = \
+-	$(top_builddir)/src/libanasazi.a \
+-	$(top_builddir)/../teuchos/src/libteuchos.a
++	$(top_builddir)/src/libanasazi.la \
++	$(top_builddir)/../teuchos/src/libteuchos.la
+ 
+ #np# One CXXFLAGS primary can be defined for each exe.  Include any -I's necessary for 
+ #np# building the exe.
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/anasazi/test/LOBPCG/Makefile.am trilinos-9.0.2-libtool/packages/anasazi/test/LOBPCG/Makefile.am
+--- trilinos-9.0.2/packages/anasazi/test/LOBPCG/Makefile.am	2008-06-26 09:45:23.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/anasazi/test/LOBPCG/Makefile.am	2009-02-19 22:21:30.000000000 +0100
+@@ -68,13 +68,13 @@
+ #np# One DEPENDENCIES primary is needed for each exe.  List any libraries that the 
+ #np# exe depends on.  (This primary is not absolutely essential.)
+ LOBPCG_complex_test_DEPENDENCIES = \
+-	$(top_builddir)/src/libanasazi.a \
+-	$(top_builddir)/../triutils/src/libtriutils.a \
+-	$(top_builddir)/../teuchos/src/libteuchos.a
++	$(top_builddir)/src/libanasazi.la \
++	$(top_builddir)/../triutils/src/libtriutils.la \
++	$(top_builddir)/../teuchos/src/libteuchos.la
+ 
+ LOBPCG_complex_lap_test_DEPENDENCIES = \
+-	$(top_builddir)/src/libanasazi.a \
+-	$(top_builddir)/../teuchos/src/libteuchos.a
++	$(top_builddir)/src/libanasazi.la \
++	$(top_builddir)/../teuchos/src/libteuchos.la
+ 
+ #np# One CXXFLAGS primary can be defined for each exe.  Include any -I's necessary for 
+ #np# building the exe.
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/anasazi/test/MVOPTester/Makefile.am trilinos-9.0.2-libtool/packages/anasazi/test/MVOPTester/Makefile.am
+--- trilinos-9.0.2/packages/anasazi/test/MVOPTester/Makefile.am	2008-10-15 17:15:09.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/anasazi/test/MVOPTester/Makefile.am	2009-02-19 22:22:06.000000000 +0100
+@@ -64,8 +64,8 @@
+ #np# exe depends on.  (This primary is not absolutely essential.)
+ 
+ MVOPComplex_test_DEPENDENCIES = \
+-	$(top_builddir)/src/libanasazi.a \
+-	$(top_builddir)/../teuchos/src/libteuchos.a
++	$(top_builddir)/src/libanasazi.la \
++	$(top_builddir)/../teuchos/src/libteuchos.la
+ 
+ #np# One CXXFLAGS primary can be defined for each exe.  Include any -I's necessary for 
+ #np# building the exe.
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/aztecoo/configure.ac trilinos-9.0.2-libtool/packages/aztecoo/configure.ac
+--- trilinos-9.0.2/packages/aztecoo/configure.ac	2008-09-17 22:38:23.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/aztecoo/configure.ac	2009-02-19 22:26:43.000000000 +0100
+@@ -123,7 +123,7 @@
+ if test "X$ac_cv_use_fortran" != "Xno"; then
+ AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+ fi
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for extra flags
+@@ -159,6 +159,7 @@
+ # Checks for header files
+ # ------------------------------------------------------------------------
+ 
++AC_LANG_PUSH(C++)
+ AC_HEADER_STDC
+ AC_CHECK_HEADERS([cstdlib stdlib.h], [break],)
+ AC_CHECK_HEADERS([cstdio stdio.h], [break],)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/aztecoo/example/AztecOO/Makefile.include.am trilinos-9.0.2-libtool/packages/aztecoo/example/AztecOO/Makefile.include.am
+--- trilinos-9.0.2/packages/aztecoo/example/AztecOO/Makefile.include.am	2004-08-13 00:10:06.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/aztecoo/example/AztecOO/Makefile.include.am	2009-02-19 22:18:57.000000000 +0100
+@@ -32,7 +32,7 @@
+ 
+ AztecOO_msr_SOURCES = $(srcdir)/cxx_main.cpp
+ 
+-#AztecOO_msr_DEPENDENCIES = $(top_builddir)/src/libaztecoo.a \
++#AztecOO_msr_DEPENDENCIES = $(top_builddir)/src/libaztecoo.la \
+ #	$(top_builddir)/../epetra/src/libepetra.a\
+ #	$(top_builddir)/../triutils/src/libtriutils.a
+ 
+@@ -45,7 +45,7 @@
+ 
+ AztecOO_vbr_SOURCES = $(srcdir)/vbr_main.cpp
+ 
+-#AztecOO_vbr_DEPENDENCIES = $(top_builddir)/src/libaztecoo.a \
++#AztecOO_vbr_DEPENDENCIES = $(top_builddir)/src/libaztecoo.la \
+ #	$(top_builddir)/../epetra/src/libepetra.a\
+ #	$(top_builddir)/../triutils/src/libtriutils.a
+ 
+@@ -58,7 +58,7 @@
+ 
+ adapt_msr_SOURCES = $(srcdir)/adapt_main.cpp
+ 
+-#adapt_msr_DEPENDENCIES = $(top_builddir)/src/libaztecoo.a \
++#adapt_msr_DEPENDENCIES = $(top_builddir)/src/libaztecoo.la \
+ #	$(top_builddir)/../epetra/src/libepetra.a\
+ #	$(top_builddir)/../triutils/src/libtriutils.a
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/aztecoo/example/AztecOO_UserOpUserMat/Makefile.include.am trilinos-9.0.2-libtool/packages/aztecoo/example/AztecOO_UserOpUserMat/Makefile.include.am
+--- trilinos-9.0.2/packages/aztecoo/example/AztecOO_UserOpUserMat/Makefile.include.am	2004-08-13 00:10:09.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/aztecoo/example/AztecOO_UserOpUserMat/Makefile.include.am	2009-02-19 22:18:57.000000000 +0100
+@@ -33,7 +33,7 @@
+ Poisson2d_SOURCES = $(srcdir)/cxx_main.cpp $(srcdir)/Poisson2dOperator.cpp \
+ 		$(srcdir)/Poisson2dOperator.h \
+ 		$(top_srcdir)/../triutils/src/Trilinos_Util.h
+-Poisson2d_DEPENDENCIES = $(top_builddir)/src/libaztecoo.a 
++Poisson2d_DEPENDENCIES = $(top_builddir)/src/libaztecoo.la 
+ 
+ Poisson2d_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir)/../epetra/src \
+ 	-I$(top_srcdir)/../triutils/src -I$(top_builddir)/../epetra/src \
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/aztecoo/example/simple_epetra_aztecoo/Makefile.include.am trilinos-9.0.2-libtool/packages/aztecoo/example/simple_epetra_aztecoo/Makefile.include.am
+--- trilinos-9.0.2/packages/aztecoo/example/simple_epetra_aztecoo/Makefile.include.am	2004-08-13 00:10:15.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/aztecoo/example/simple_epetra_aztecoo/Makefile.include.am	2009-02-19 22:18:57.000000000 +0100
+@@ -32,7 +32,7 @@
+ 
+ epetra_crsmatrix_SOURCES = $(srcdir)/cxx_main.cpp
+ 
+-#epetra_crsmatrix_DEPENDENCIES = $(top_builddir)/src/libaztecoo.a $(top_builddir)/../epetra/src/libepetra.a
++#epetra_crsmatrix_DEPENDENCIES = $(top_builddir)/src/libaztecoo.la $(top_builddir)/../epetra/src/libepetra.a
+ 
+ epetra_crsmatrix_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir)/../epetra/src \
+ 	-I$(top_builddir)/../epetra/src
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/aztecoo/src/Makefile.am trilinos-9.0.2-libtool/packages/aztecoo/src/Makefile.am
+--- trilinos-9.0.2/packages/aztecoo/src/Makefile.am	2008-07-11 18:53:28.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/aztecoo/src/Makefile.am	2009-02-19 22:38:51.000000000 +0100
+@@ -272,7 +272,7 @@
+ # Aztec library specifications
+ # ------------------------------------------------------------------------
+ 
+-AZTECOO_LIB = libaztecoo.a
++AZTECOO_LIB = libaztecoo.la
+ 
+ 
+ AZTECOO_H = \
+@@ -289,7 +289,7 @@
+ 	$(MPI_H) \
+ 	$(MPISMP_H)
+ 
+-libaztecoo_a_SOURCES = \
++libaztecoo_la_SOURCES = \
+ 	$(CORE) \
+ 	$(WITH_CPP) \
+ 	$(UTIL) \
+@@ -303,7 +303,7 @@
+ 	$(FORTRAN_ENABLED) \
+ 	$(FORTRAN_DISABLED)
+ 
+-EXTRA_libaztecoo_a_SOURCES = \
++EXTRA_libaztecoo_la_SOURCES = \
+ 	$(EXTRA_FORTRAN_ENABLED) \
+ 	$(EXTRA_FORTRAN_DISABLED) \
+ 	$(EXTRA_MPI_H) \
+@@ -333,13 +333,17 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libaztecoo_a_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD)
++libaztecoo_la_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD) \
++		       ../../teuchos/src/libteuchos.la \
++		       ../../epetra/src/libepetra.la \
++		       ../../triutils/src/libtriutils.la
++libaztecoo_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+-lib_LIBRARIES = $(AZTECOO_LIB)
++lib_LTLIBRARIES = $(AZTECOO_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/aztecoo/test/AztecOO/Makefile.am trilinos-9.0.2-libtool/packages/aztecoo/test/AztecOO/Makefile.am
+--- trilinos-9.0.2/packages/aztecoo/test/AztecOO/Makefile.am	2005-06-30 02:34:42.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/aztecoo/test/AztecOO/Makefile.am	2009-02-19 22:18:57.000000000 +0100
+@@ -32,7 +32,7 @@
+ 
+ AztecOO_SOURCES = $(srcdir)/cxx_main.cpp
+ 
+-AztecOO_DEPENDENCIES = $(top_builddir)/src/libaztecoo.a
++AztecOO_DEPENDENCIES = $(top_builddir)/src/libaztecoo.la
+ 
+ include $(top_builddir)/Makefile.export.aztecoo
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/aztecoo/test/AztecOO_SetParameters/Makefile.include.am trilinos-9.0.2-libtool/packages/aztecoo/test/AztecOO_SetParameters/Makefile.include.am
+--- trilinos-9.0.2/packages/aztecoo/test/AztecOO_SetParameters/Makefile.include.am	2004-08-17 01:05:28.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/aztecoo/test/AztecOO_SetParameters/Makefile.include.am	2009-02-19 22:18:57.000000000 +0100
+@@ -32,7 +32,7 @@
+ 
+ AztecOO_SetParameters_SOURCES = $(srcdir)/cxx_main.cpp
+ 
+-AztecOO_SetParameters_DEPENDENCIES = $(top_builddir)/src/libaztecoo.a
++AztecOO_SetParameters_DEPENDENCIES = $(top_builddir)/src/libaztecoo.la
+ 
+ AztecOO_SetParameters_CXXFLAGS = -I$(top_srcdir)/src \
+ 	$(AZTECOO_INCLUDES) $(TEUCHOS_INCLUDES)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/aztecoo/test/GMRES_Tests/Makefile.am trilinos-9.0.2-libtool/packages/aztecoo/test/GMRES_Tests/Makefile.am
+--- trilinos-9.0.2/packages/aztecoo/test/GMRES_Tests/Makefile.am	2005-09-29 06:21:32.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/aztecoo/test/GMRES_Tests/Makefile.am	2009-02-19 22:18:57.000000000 +0100
+@@ -32,7 +32,7 @@
+ 
+ GMRES_Tests_SOURCES = $(srcdir)/cxx_main.cpp
+ 
+-GMRES_Tests_DEPENDENCIES = $(top_builddir)/src/libaztecoo.a
++GMRES_Tests_DEPENDENCIES = $(top_builddir)/src/libaztecoo.la
+ 
+ include $(top_builddir)/Makefile.export.aztecoo
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/belos/configure.ac trilinos-9.0.2-libtool/packages/belos/configure.ac
+--- trilinos-9.0.2/packages/belos/configure.ac	2009-01-07 17:58:52.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/belos/configure.ac	2009-02-19 22:27:09.000000000 +0100
+@@ -107,7 +107,7 @@
+ AC_PROG_CC(cc gcc)
+ AC_PROG_CXX(CC g++ c++ cxx)
+ #AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for extra flags
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/belos/src/Makefile.am trilinos-9.0.2-libtool/packages/belos/src/Makefile.am
+--- trilinos-9.0.2/packages/belos/src/Makefile.am	2008-10-16 17:07:59.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/belos/src/Makefile.am	2009-02-22 14:03:05.000000000 +0100
+@@ -135,7 +135,7 @@
+ # Belos library specifications
+ # ------------------------------------------------------------------------
+ 
+-BELOS_LIB = libbelos.a
++BELOS_LIB = libbelos.la
+ 
+ 
+ BELOS_H = \
+@@ -147,7 +147,7 @@
+ 	$(MPI_H) \
+ 	$(MPISMP_H)
+ 
+-libbelos_a_SOURCES = \
++libbelos_la_SOURCES = \
+ 	$(CORE) \
+ 	$(UTIL) \
+ 	$(SERIAL) \
+@@ -179,13 +179,14 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libbelos_a_LIBADD = $(XTRALDADD)
++libbelos_la_LIBADD = $(XTRALDADD)
++libbelos_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+-lib_LIBRARIES = $(BELOS_LIB)
++lib_LTLIBRARIES = $(BELOS_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/didasko/configure.ac trilinos-9.0.2-libtool/packages/didasko/configure.ac
+--- trilinos-9.0.2/packages/didasko/configure.ac	2008-09-22 15:50:38.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/didasko/configure.ac	2009-02-19 22:22:34.000000000 +0100
+@@ -110,7 +110,7 @@
+ AC_PROG_CC(cc gcc)
+ AC_PROG_CXX(CC g++ c++ cxx)
+ #AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Check to see if MPI enabled and if any special configuration done
+@@ -147,6 +147,7 @@
+ # Checks for header files - used in Epetra_ConfigDefs.h 
+ # ------------------------------------------------------------------------
+ 
++AC_LANG_PUSH(C++)
+ AC_CHECK_HEADERS([cstdlib stdlib.h], [break],)
+ AC_CHECK_HEADERS([cstdio stdio.h], [break],)
+ AC_CHECK_HEADERS([cassert assert.h], [break],)
+@@ -154,6 +155,7 @@
+ AC_CHECK_HEADERS([iomanip iomanip.h], [break],)
+ AC_CHECK_HEADERS([iostream iostream.h], [break],)
+ AC_CHECK_HEADERS([string string.h], [break],)
++AC_LANG_POP(C++)
+ 
+ if test "X$ac_cv_header_cstdlib" != "Xyes" && test "X$ac_cv_header_stdlib_h" != "Xyes"; then
+   AC_MSG_ERROR([[Cannot find cstdlib or stdlib.h. Didasko requires at least one or the other.]])
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/epetra/configure.ac trilinos-9.0.2-libtool/packages/epetra/configure.ac
+--- trilinos-9.0.2/packages/epetra/configure.ac	2008-09-17 22:38:24.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/epetra/configure.ac	2009-02-19 22:25:03.000000000 +0100
+@@ -123,7 +123,7 @@
+ if test "X$ac_cv_use_fortran" != "Xno"; then
+ AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+ fi
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Get the absolute path to the build directory.
+@@ -167,6 +167,7 @@
+ # Checks for header files
+ # ------------------------------------------------------------------------
+ 
++AC_LANG_PUSH(C++)
+ AC_CHECK_HEADERS([cstdlib stdlib.h], [break],)
+ AC_CHECK_HEADERS([cstdio stdio.h], [break],)
+ AC_CHECK_HEADERS([cassert assert.h], [break],)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/epetra/src/Makefile.am trilinos-9.0.2-libtool/packages/epetra/src/Makefile.am
+--- trilinos-9.0.2/packages/epetra/src/Makefile.am	2008-08-05 01:34:33.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/epetra/src/Makefile.am	2009-02-19 22:18:57.000000000 +0100
+@@ -278,7 +278,7 @@
+ # Epetra library specifications
+ # ------------------------------------------------------------------------
+ 
+-EPETRA_LIB = libepetra.a
++EPETRA_LIB = libepetra.la
+ 
+ 
+ EPETRA_H = \
+@@ -294,7 +294,7 @@
+ 	$(MPISMP_H) \
+ 	$(OSKI_H)
+ 
+-libepetra_a_SOURCES = \
++libepetra_la_SOURCES = \
+ 	$(CORE) \
+ 	$(UTIL) \
+ 	$(UNIPROC) \
+@@ -306,7 +306,7 @@
+ 	$(FORTRAN_KERNELS) \
+ 	$(OSKI)
+ 
+-EXTRA_libepetra_a_SOURCES = \
++EXTRA_libepetra_la_SOURCES = \
+ 	$(EXTRA_MPI) \
+ 	$(EXTRA_MPI_H) \
+ 	$(EXTRA_MPISMP) \
+@@ -346,13 +346,14 @@
+ # On alpha-dec machines, the extra .o's are needed for Epetra only.
+ # ------------------------------------------------------------------------
+ 
+-libepetra_a_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD)
++libepetra_la_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD) $(LAPACK_LIBS)
++libepetra_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+-lib_LIBRARIES = $(EPETRA_LIB)
++lib_LTLIBRARIES = $(EPETRA_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/epetra/test/src/Makefile.am trilinos-9.0.2-libtool/packages/epetra/test/src/Makefile.am
+--- trilinos-9.0.2/packages/epetra/test/src/Makefile.am	2007-06-27 02:28:26.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/epetra/test/src/Makefile.am	2009-02-19 22:18:57.000000000 +0100
+@@ -53,9 +53,9 @@
+ # Epetra_test library specifications
+ # ------------------------------------------------------------------------
+ 
+-EPETRA_TEST_LIB = libepetra_test.a
++EPETRA_TEST_LIB = libepetra_test.la
+ 
+-libepetra_test_a_SOURCES = \
++libepetra_test_la_SOURCES = \
+ 	$(CORE)
+ 
+ 
+@@ -84,9 +84,10 @@
+ # On alpha-dec machines, the extra .o's are needed for Epetra only.
+ # ------------------------------------------------------------------------
+ 
+-libepetra_test_a_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD)
++libepetra_test_la_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD)
++libepetra_test_la_LDFLAGS = -release $(VERSION)
+ 
+-lib_LIBRARIES = $(EPETRA_TEST_LIB)
++lib_LTLIBRARIES = $(EPETRA_TEST_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # Files to be deleted by 'make maintainer-clean'
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/epetraext/configure.ac trilinos-9.0.2-libtool/packages/epetraext/configure.ac
+--- trilinos-9.0.2/packages/epetraext/configure.ac	2009-01-07 17:58:55.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/epetraext/configure.ac	2009-02-19 22:27:41.000000000 +0100
+@@ -131,7 +131,7 @@
+ #elif test "X$ac_cv_use_fortran" != "Xno"; then
+  AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+ #fi
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for --enable-debug, --enable-optimize, --enable-profile, --enable-purify
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/epetraext/src/Makefile.am trilinos-9.0.2-libtool/packages/epetraext/src/Makefile.am
+--- trilinos-9.0.2/packages/epetraext/src/Makefile.am	2008-08-29 02:18:24.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/epetraext/src/Makefile.am	2009-02-19 22:43:01.000000000 +0100
+@@ -466,7 +466,7 @@
+ # EpetraExt inout library specifications
+ # ------------------------------------------------------------------------
+ 
+-libepetraext_a_SOURCES = \
++libepetraext_la_SOURCES = \
+      $(CORE) \
+      $(TRANSFORM) \
+      $(BTF) \
+@@ -481,7 +481,7 @@
+ 
+ #If these are not listed, the files will not be included in
+ #the distribution tarball.
+-EXTRA_libepetraext_a_SOURCES = \
++EXTRA_libepetraext_la_SOURCES = \
+      $(EXTRA_TRANSFORM_EXPERIMENTAL) \
+      $(EXTRA_TRIUTILS_INOUT)
+ 
+@@ -492,7 +492,7 @@
+      $(EXTRA_TRIUTILS_INOUT_H)
+ 
+ # libraries to be installed in $(libexecdir)
+-EPETRAEXT_LIB = libepetraext.a
++EPETRAEXT_LIB = libepetraext.la
+ 
+ EPETRAEXT_H = \
+      $(CORE_H) \
+@@ -548,11 +548,11 @@
+ 
+ if USE_ALTERNATE_AR
+ 
+-libepetraext_a_AR = $(ALTERNATE_AR)
++libepetraext_la_AR = $(ALTERNATE_AR)
+ 
+ else
+ 
+-libepetraext_a_AR = $(AR) cru
++libepetraext_la_AR = $(AR) cru
+ 
+ endif
+ 
+@@ -562,13 +562,16 @@
+ # On alpha-dec machines, the extra .o's are needed for Epetra only.
+ # ------------------------------------------------------------------------
+ 
+-libepetraext_a_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD)
++libepetraext_la_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD) \
++		       ../../epetra/src/libepetra.la \
++		       ../../triutils/src/libtriutils.la
++libepetraext_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+-lib_LIBRARIES = $(EPETRAEXT_LIB)
++lib_LTLIBRARIES = $(EPETRAEXT_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+@@ -576,7 +579,7 @@
+ 
+ include_HEADERS = $(EPETRAEXT_H) 
+ nodist_include_HEADERS = $(PETSC_H)
+-#nodist_libnox_a_SOURCES =
++#nodist_libnox_la_SOURCES =
+ 
+ # ------------------------------------------------------------------------
+ # Special stuff to install in our special $(execincludedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/epetraext/test/BTF/Makefile.am trilinos-9.0.2-libtool/packages/epetraext/test/BTF/Makefile.am
+--- trilinos-9.0.2/packages/epetraext/test/BTF/Makefile.am	2006-10-18 05:45:29.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/epetraext/test/BTF/Makefile.am	2009-02-19 22:18:57.000000000 +0100
+@@ -35,8 +35,8 @@
+   $(top_srcdir)/test/epetra_test_err.h
+ 
+ BTF_test_DEPENDENCIES = \
+-  $(top_builddir)/src/libepetraext.a \
+-  $(top_builddir)/../epetra/src/libepetra.a
++  $(top_builddir)/src/libepetraext.la \
++  $(top_builddir)/../epetra/src/libepetra.la
+ 
+ include $(top_builddir)/Makefile.export.epetraext
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/epetraext/test/Composite/Makefile.am trilinos-9.0.2-libtool/packages/epetraext/test/Composite/Makefile.am
+--- trilinos-9.0.2/packages/epetraext/test/Composite/Makefile.am	2007-02-28 18:37:58.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/epetraext/test/Composite/Makefile.am	2009-02-19 22:18:57.000000000 +0100
+@@ -35,8 +35,8 @@
+   $(top_srcdir)/test/epetra_test_err.h
+ 
+ Composite_test_DEPENDENCIES = \
+-  $(top_builddir)/src/libepetraext.a \
+-  $(top_builddir)/../epetra/src/libepetra.a
++  $(top_builddir)/src/libepetraext.la \
++  $(top_builddir)/../epetra/src/libepetra.la
+ 
+ include $(top_builddir)/Makefile.export.epetraext
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/epetraext/test/Matlab/Makefile.am trilinos-9.0.2-libtool/packages/epetraext/test/Matlab/Makefile.am
+--- trilinos-9.0.2/packages/epetraext/test/Matlab/Makefile.am	2006-10-18 05:45:32.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/epetraext/test/Matlab/Makefile.am	2009-02-19 22:18:57.000000000 +0100
+@@ -35,8 +35,8 @@
+   $(top_srcdir)/test/epetra_test_err.h
+ 
+ matlab_test_DEPENDENCIES = \
+-  $(top_builddir)/src/libepetraext.a \
+-  $(top_builddir)/../epetra/src/libepetra.a
++  $(top_builddir)/src/libepetraext.la \
++  $(top_builddir)/../epetra/src/libepetra.la
+ 
+ include $(top_builddir)/Makefile.export.epetraext
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/epetraext/test/MatrixMatrix/Makefile.am trilinos-9.0.2-libtool/packages/epetraext/test/MatrixMatrix/Makefile.am
+--- trilinos-9.0.2/packages/epetraext/test/MatrixMatrix/Makefile.am	2006-10-18 05:45:32.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/epetraext/test/MatrixMatrix/Makefile.am	2009-02-19 22:18:57.000000000 +0100
+@@ -37,8 +37,8 @@
+   $(top_srcdir)/test/epetra_test_err.h
+ 
+ MatrixMatrix_test_DEPENDENCIES = \
+-  $(top_builddir)/src/libepetraext.a \
+-  $(top_builddir)/../epetra/src/libepetra.a
++  $(top_builddir)/src/libepetraext.la \
++  $(top_builddir)/../epetra/src/libepetra.la
+ 
+ include $(top_builddir)/Makefile.export.epetraext
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/epetraext/test/Overlap/Makefile.am trilinos-9.0.2-libtool/packages/epetraext/test/Overlap/Makefile.am
+--- trilinos-9.0.2/packages/epetraext/test/Overlap/Makefile.am	2006-10-18 05:45:33.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/epetraext/test/Overlap/Makefile.am	2009-02-19 22:18:57.000000000 +0100
+@@ -35,8 +35,8 @@
+   $(top_srcdir)/test/epetra_test_err.h
+ 
+ Overlap_test_DEPENDENCIES = \
+-  $(top_builddir)/src/libepetraext.a \
+-  $(top_builddir)/../epetra/src/libepetra.a
++  $(top_builddir)/src/libepetraext.la \
++  $(top_builddir)/../epetra/src/libepetra.la
+ 
+ include $(top_builddir)/Makefile.export.epetraext
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/epetraext/test/Permutation/Makefile.am trilinos-9.0.2-libtool/packages/epetraext/test/Permutation/Makefile.am
+--- trilinos-9.0.2/packages/epetraext/test/Permutation/Makefile.am	2006-10-18 05:45:34.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/epetraext/test/Permutation/Makefile.am	2009-02-19 22:18:57.000000000 +0100
+@@ -35,8 +35,8 @@
+   $(top_srcdir)/test/epetra_test_err.h
+ 
+ Permutation_test_DEPENDENCIES = \
+-  $(top_builddir)/src/libepetraext.a \
+-  $(top_builddir)/../epetra/src/libepetra.a
++  $(top_builddir)/src/libepetraext.la \
++  $(top_builddir)/../epetra/src/libepetra.la
+ 
+ include $(top_builddir)/Makefile.export.epetraext
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/external/configure.ac trilinos-9.0.2-libtool/packages/external/configure.ac
+--- trilinos-9.0.2/packages/external/configure.ac	2007-12-31 19:13:38.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/external/configure.ac	2009-02-19 22:18:57.000000000 +0100
+@@ -81,7 +81,7 @@
+ #AC_PROG_CC(cc gcc)
+ #AC_PROG_CXX(CC g++ gcc c++ cxx)
+ #AC_PROG_F77(f77 g77 f90 xlf90)
+-#AC_PROG_RANLIB
++#AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for extra flags
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/external/sample/configure.ac trilinos-9.0.2-libtool/packages/external/sample/configure.ac
+--- trilinos-9.0.2/packages/external/sample/configure.ac	2007-12-31 19:13:39.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/external/sample/configure.ac	2009-02-19 22:18:57.000000000 +0100
+@@ -87,7 +87,7 @@
+ #AC_PROG_CC(cc gcc)
+ #AC_PROG_CXX(CC g++ gcc c++ cxx)
+ #AC_PROG_F77(f77 g77 f90 xlf90)
+-#AC_PROG_RANLIB
++#AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for extra flags
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/galeri/configure.ac trilinos-9.0.2-libtool/packages/galeri/configure.ac
+--- trilinos-9.0.2/packages/galeri/configure.ac	2008-09-19 22:48:43.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/galeri/configure.ac	2009-02-19 22:25:27.000000000 +0100
+@@ -120,7 +120,7 @@
+ AC_PROG_CC(cc gcc)
+ AC_PROG_CXX(CC g++ c++ cxx)
+ #AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # ------------------------------------------------------------------------
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/galeri/src/Makefile.am trilinos-9.0.2-libtool/packages/galeri/src/Makefile.am
+--- trilinos-9.0.2/packages/galeri/src/Makefile.am	2008-10-15 17:15:21.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/galeri/src/Makefile.am	2009-02-22 14:04:13.000000000 +0100
+@@ -110,11 +110,11 @@
+ # ------------------------------------------------------------------------
+ # Galeri library specifications
+ # ------------------------------------------------------------------------
+-GALERI_LIB = libgaleri.a
++GALERI_LIB = libgaleri.la
+ 
+ GALERI_H = $(CORE_H) 
+ 
+-libgaleri_a_SOURCES = $(CORE) 
++libgaleri_la_SOURCES = $(CORE) 
+ 
+ # ------------------------------------------------------------------------
+ # For using a special archiver
+@@ -135,13 +135,14 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libgaleri_a_LIBADD = $(XTRALDADD)
++libgaleri_la_LIBADD = $(XTRALDADD)
++libgaleri_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+-lib_LIBRARIES = $(GALERI_LIB)
++lib_LTLIBRARIES = $(GALERI_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ifpack/configure.ac trilinos-9.0.2-libtool/packages/ifpack/configure.ac
+--- trilinos-9.0.2/packages/ifpack/configure.ac	2008-09-17 22:38:24.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ifpack/configure.ac	2009-02-19 22:27:22.000000000 +0100
+@@ -115,7 +115,7 @@
+ AC_PROG_CXX(CC g++ c++ cxx)
+ BASE_CXX=${CXX}
+ #AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for --enable-debug, --enable-optimize, --enable-profile, --enable-purify
+@@ -167,6 +167,7 @@
+ # Checks for header files
+ # ------------------------------------------------------------------------
+ 
++AC_LANG_PUSH(C++)
+ AC_CHECK_HEADERS([cstdlib stdlib.h], [break],)
+ AC_CHECK_HEADERS([cstdio stdio.h], [break],)
+ AC_CHECK_HEADERS([cassert assert.h], [break],)
+@@ -175,6 +176,7 @@
+ AC_CHECK_HEADERS([string string.h], [break],)
+ AC_CHECK_HEADERS([algorithm algo.h algorithm.h], [break],)
+ AC_CHECK_HEADERS([vector vector.h], [break],)
++AC_LANG_POP(C++)
+ 
+ if test "X$ac_cv_header_cstdlib" != "Xyes" && test "X$ac_cv_header_stdlib_h" != "Xyes"; then
+   AC_MSG_ERROR([[Cannot find cstdlib or stdlib.h.  Ifpack requires at least one or the other.]])
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ifpack/src/Makefile.am trilinos-9.0.2-libtool/packages/ifpack/src/Makefile.am
+--- trilinos-9.0.2/packages/ifpack/src/Makefile.am	2008-07-11 18:53:29.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ifpack/src/Makefile.am	2009-02-19 22:18:57.000000000 +0100
+@@ -211,7 +211,7 @@
+ # Ifpack library specifications
+ # ------------------------------------------------------------------------
+ 
+-IFPACK_LIB = libifpack.a
++IFPACK_LIB = libifpack.la
+ 
+ 
+ IFPACK_H = \
+@@ -226,7 +226,7 @@
+ 	$(MPI_H) \
+ 	$(MPISMP_H)
+ 
+-libifpack_a_SOURCES = \
++libifpack_la_SOURCES = \
+ 	$(CORE) \
+ 	$(SERIAL) \
+ 	$(LANG_WRAPS) \
+@@ -236,7 +236,7 @@
+ 	$(MPI) \
+ 	$(MPISMP)
+ 
+-EXTRA_libifpack_a_SOURCES = \
++EXTRA_libifpack_la_SOURCES = \
+ 	$(EXTRA_DIST) \
+ 	$(EXTRA_DIST_H) 
+ 
+@@ -285,13 +285,17 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libifpack_a_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD)
++libifpack_la_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD) \
++		       ../../teuchos/src/libteuchos.la \
++		       ../../epetra/src/libepetra.la \
++		       ../../aztecoo/src/libaztecoo.la
++libifpack_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+-lib_LIBRARIES = $(IFPACK_LIB)
++lib_LTLIBRARIES = $(IFPACK_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ifpack/test/CompareWithAztecOO/Makefile.am trilinos-9.0.2-libtool/packages/ifpack/test/CompareWithAztecOO/Makefile.am
+--- trilinos-9.0.2/packages/ifpack/test/CompareWithAztecOO/Makefile.am	2007-12-22 07:06:52.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/ifpack/test/CompareWithAztecOO/Makefile.am	2009-02-19 22:18:57.000000000 +0100
+@@ -46,7 +46,7 @@
+ noinst_PROGRAMS = TestCompareWithAztecOO
+ 
+ TestCompareWithAztecOO_SOURCES      = $(srcdir)/cxx_main.cpp
+-TestCompareWithAztecOO_DEPENDENCIES = $(top_builddir)/src/libifpack.a 
++TestCompareWithAztecOO_DEPENDENCIES = $(top_builddir)/src/libifpack.la 
+ TestCompareWithAztecOO_CXXFLAGS     = $(EXAMPLE_INCLUDES) 
+ TestCompareWithAztecOO_LDADD        = $(EXAMPLE_LIBS) 
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ifpack/test/Container/Makefile.am trilinos-9.0.2-libtool/packages/ifpack/test/Container/Makefile.am
+--- trilinos-9.0.2/packages/ifpack/test/Container/Makefile.am	2007-12-22 07:06:53.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/ifpack/test/Container/Makefile.am	2009-02-19 22:18:57.000000000 +0100
+@@ -45,7 +45,7 @@
+ noinst_PROGRAMS = TestContainer
+ 
+ TestContainer_SOURCES      = $(srcdir)/cxx_main.cpp
+-TestContainer_DEPENDENCIES = $(top_builddir)/src/libifpack.a 
++TestContainer_DEPENDENCIES = $(top_builddir)/src/libifpack.la 
+ TestContainer_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ TestContainer_LDADD        = $(EXAMPLE_LIBS)
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ifpack/test/IC/Makefile.am trilinos-9.0.2-libtool/packages/ifpack/test/IC/Makefile.am
+--- trilinos-9.0.2/packages/ifpack/test/IC/Makefile.am	2007-12-22 07:06:53.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/ifpack/test/IC/Makefile.am	2009-02-19 22:18:57.000000000 +0100
+@@ -45,7 +45,7 @@
+ noinst_PROGRAMS = TestIC
+ 
+ TestIC_SOURCES      = $(srcdir)/cxx_main.cpp
+-TestIC_DEPENDENCIES = $(top_builddir)/src/libifpack.a 
++TestIC_DEPENDENCIES = $(top_builddir)/src/libifpack.la 
+ TestIC_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ TestIC_LDADD        = $(EXAMPLE_LIBS)
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ifpack/test/ILU/Makefile.am trilinos-9.0.2-libtool/packages/ifpack/test/ILU/Makefile.am
+--- trilinos-9.0.2/packages/ifpack/test/ILU/Makefile.am	2007-12-22 07:06:55.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/ifpack/test/ILU/Makefile.am	2009-02-19 22:18:57.000000000 +0100
+@@ -45,7 +45,7 @@
+ noinst_PROGRAMS = TestILU
+ 
+ TestILU_SOURCES      = $(srcdir)/cxx_main.cpp
+-TestILU_DEPENDENCIES = $(top_builddir)/src/libifpack.a 
++TestILU_DEPENDENCIES = $(top_builddir)/src/libifpack.la 
+ TestILU_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ TestILU_LDADD        = $(EXAMPLE_LIBS)
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ifpack/test/IlukGraph/Makefile.am trilinos-9.0.2-libtool/packages/ifpack/test/IlukGraph/Makefile.am
+--- trilinos-9.0.2/packages/ifpack/test/IlukGraph/Makefile.am	2007-12-22 07:06:55.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/ifpack/test/IlukGraph/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -42,6 +42,6 @@
+ noinst_PROGRAMS = IlukGraph_test
+ 
+ IlukGraph_test_SOURCES      = $(srcdir)/cxx_main.cpp
+-IlukGraph_test_DEPENDENCIES = $(top_builddir)/src/libifpack.a
++IlukGraph_test_DEPENDENCIES = $(top_builddir)/src/libifpack.la
+ IlukGraph_test_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ IlukGraph_test_LDADD        = $(EXAMPLE_LIBS)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ifpack/test/OverlappingRowMatrix/Makefile.am trilinos-9.0.2-libtool/packages/ifpack/test/OverlappingRowMatrix/Makefile.am
+--- trilinos-9.0.2/packages/ifpack/test/OverlappingRowMatrix/Makefile.am	2007-12-22 07:06:56.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/ifpack/test/OverlappingRowMatrix/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -46,7 +46,7 @@
+ noinst_PROGRAMS = TestOverlappingRowMatrix
+ 
+ TestOverlappingRowMatrix_SOURCES      = $(srcdir)/cxx_main.cpp
+-TestOverlappingRowMatrix_DEPENDENCIES = $(top_builddir)/src/libifpack.a 
++TestOverlappingRowMatrix_DEPENDENCIES = $(top_builddir)/src/libifpack.la 
+ TestOverlappingRowMatrix_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ TestOverlappingRowMatrix_LDADD        = $(EXAMPLE_LIBS)
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ifpack/test/PreconditionerFactory/Makefile.am trilinos-9.0.2-libtool/packages/ifpack/test/PreconditionerFactory/Makefile.am
+--- trilinos-9.0.2/packages/ifpack/test/PreconditionerFactory/Makefile.am	2007-12-22 07:06:57.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/ifpack/test/PreconditionerFactory/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -45,7 +45,7 @@
+ noinst_PROGRAMS = TestPreconditionerFactory
+ 
+ TestPreconditionerFactory_SOURCES      = $(srcdir)/cxx_main.cpp
+-TestPreconditionerFactory_DEPENDENCIES = $(top_builddir)/src/libifpack.a 
++TestPreconditionerFactory_DEPENDENCIES = $(top_builddir)/src/libifpack.la 
+ TestPreconditionerFactory_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ TestPreconditionerFactory_LDADD        = $(EXAMPLE_LIBS)
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ifpack/test/Relaxation/Makefile.am trilinos-9.0.2-libtool/packages/ifpack/test/Relaxation/Makefile.am
+--- trilinos-9.0.2/packages/ifpack/test/Relaxation/Makefile.am	2007-12-22 07:06:57.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/ifpack/test/Relaxation/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -46,7 +46,7 @@
+ noinst_PROGRAMS = TestRelaxation
+ 
+ TestRelaxation_SOURCES      = $(srcdir)/cxx_main.cpp
+-TestRelaxation_DEPENDENCIES = $(top_builddir)/src/libifpack.a 
++TestRelaxation_DEPENDENCIES = $(top_builddir)/src/libifpack.la 
+ TestRelaxation_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ TestRelaxation_LDADD        = $(EXAMPLE_LIBS)
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ifpack/test/SetParameters/Makefile.am trilinos-9.0.2-libtool/packages/ifpack/test/SetParameters/Makefile.am
+--- trilinos-9.0.2/packages/ifpack/test/SetParameters/Makefile.am	2007-12-22 07:06:58.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/ifpack/test/SetParameters/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -42,6 +42,6 @@
+ noinst_PROGRAMS = SetParameters
+ 
+ SetParameters_SOURCES      = $(srcdir)/cxx_main.cpp
+-SetParameters_DEPENDENCIES = $(top_builddir)/src/libifpack.a 
++SetParameters_DEPENDENCIES = $(top_builddir)/src/libifpack.la 
+ SetParameters_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ SetParameters_LDADD        = $(EXAMPLE_LIBS)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ifpack/test/TestAll/Makefile.am trilinos-9.0.2-libtool/packages/ifpack/test/TestAll/Makefile.am
+--- trilinos-9.0.2/packages/ifpack/test/TestAll/Makefile.am	2007-12-22 07:07:00.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/ifpack/test/TestAll/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -46,7 +46,7 @@
+ noinst_PROGRAMS = TestAll
+ 
+ TestAll_SOURCES      = $(srcdir)/cxx_main.cpp
+-TestAll_DEPENDENCIES = $(top_builddir)/src/libifpack.a 
++TestAll_DEPENDENCIES = $(top_builddir)/src/libifpack.la 
+ TestAll_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ TestAll_LDADD        = $(EXAMPLE_LIBS)
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/isorropia/configure.ac trilinos-9.0.2-libtool/packages/isorropia/configure.ac
+--- trilinos-9.0.2/packages/isorropia/configure.ac	2008-09-05 18:59:49.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/isorropia/configure.ac	2009-02-19 22:27:58.000000000 +0100
+@@ -115,7 +115,7 @@
+ AC_PROG_CXX(CC g++ c++ cxx)
+ BASE_CXX=${CXX}
+ #AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for --enable-debug, --enable-optimize, --enable-profile, --enable-purify
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/isorropia/src/Makefile.am trilinos-9.0.2-libtool/packages/isorropia/src/Makefile.am
+--- trilinos-9.0.2/packages/isorropia/src/Makefile.am	2008-09-11 18:40:00.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/isorropia/src/Makefile.am	2009-02-22 14:05:02.000000000 +0100
+@@ -113,10 +113,10 @@
+ # Isorropia library specifications
+ # ------------------------------------------------------------------------
+ 
+-ISORROPIA_LIB = libisorropia.a
++ISORROPIA_LIB = libisorropia.la
+ 
+ 
+-libisorropia_a_SOURCES = \
++libisorropia_la_SOURCES = \
+ 	$(CORE) $(EPETRA_SOURCES) $(EPETRA_ZOLTAN_SOURCES)
+ 
+ 
+@@ -145,9 +145,10 @@
+ # On alpha-dec machines, the extra .o's are needed for Epetra only.
+ # ------------------------------------------------------------------------
+ 
+-libisorropia_a_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD)
++libisorropia_la_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD)
++libisorropia_la_LDFLAGS = -release $(VERSION)
+ 
+-lib_LIBRARIES = $(ISORROPIA_LIB)
++lib_LTLIBRARIES = $(ISORROPIA_LIB)
+ 
+ include_HEADERS = $(CORE_H) $(EPETRA_HEADERFILES) $(EPETRA_ZOLTAN_HEADERFILES)
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/kokkos/configure.ac trilinos-9.0.2-libtool/packages/kokkos/configure.ac
+--- trilinos-9.0.2/packages/kokkos/configure.ac	2007-12-18 21:08:12.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/kokkos/configure.ac	2009-02-19 22:18:58.000000000 +0100
+@@ -114,7 +114,7 @@
+ AC_PROG_CC(cc gcc)
+ AC_PROG_CXX(CC g++ c++ cxx)
+ AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for extra flags
+@@ -143,11 +143,13 @@
+ # Checks for header files - used in Kokkos_ConfigDefs.h 
+ # ------------------------------------------------------------------------
+ 
++AC_LANG_PUSH(C++)
+ AC_CHECK_HEADERS([sys/time.h time.h ctime], [break],)
+ AC_CHECK_HEADERS([string string.h], [break],)
+ AC_CHECK_HEADERS([cassert assert.h], [break],)
+ AC_CHECK_HEADERS([iostream iostream.h], [break],)
+ AC_CHECK_HEADERS([sys/resource.h],,)
++AC_LANG_POP(C++)
+ 
+ if test "X$ac_cv_header_ctime" != "Xyes" && test "X$ac_cv_header_sys_time_h" != "Xyes" && test "X$ac_cv_header_time_h" != "Xyes"; then
+   AC_MSG_ERROR([[Cannot find ctime, sys/time.h, or time.h.  Kokkos requires at least one of these files.]])
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/kokkos/src/Makefile.am trilinos-9.0.2-libtool/packages/kokkos/src/Makefile.am
+--- trilinos-9.0.2/packages/kokkos/src/Makefile.am	2008-10-15 17:15:25.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/kokkos/src/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -133,7 +133,7 @@
+ # Kokkos library specifications
+ # ------------------------------------------------------------------------
+ 
+-KOKKOS_LIB = libkokkos.a
++KOKKOS_LIB = libkokkos.la
+ 
+ KOKKOS_H = \
+ 	$(CORE_H) \
+@@ -145,7 +145,7 @@
+ 	$(EXPERIMENTAL_H) \
+ 	$(MPI_H)
+ 
+-libkokkos_a_SOURCES = \
++libkokkos_la_SOURCES = \
+ 	$(CORE) \
+ 	$(UTIL) \
+ 	$(SERIAL) \
+@@ -153,7 +153,7 @@
+ 	$(COMP) \
+ 	$(MPI)
+ 
+-EXTRA_libkokkos_a_SOURCES = \
++EXTRA_libkokkos_la_SOURCES = \
+ 	$(EXTRA_EXPERIMENTAL_H) \
+ 	$(EXTRA_MPI) \
+ 	$(EXTRA_MPI_H)
+@@ -185,14 +185,15 @@
+ # ------------------------------------------------------------------------
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-libkokkos_a_LIBADD = $(XTRALDADD)
++libkokkos_la_LIBADD = $(XTRALDADD)
++libkokkos_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-lib_LIBRARIES = $(KOKKOS_LIB)
++lib_LTLIBRARIES = $(KOKKOS_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/kokkos/test/BaseSparseMultiply/Makefile.am trilinos-9.0.2-libtool/packages/kokkos/test/BaseSparseMultiply/Makefile.am
+--- trilinos-9.0.2/packages/kokkos/test/BaseSparseMultiply/Makefile.am	2004-03-10 23:41:47.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/kokkos/test/BaseSparseMultiply/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -34,11 +34,11 @@
+ BaseSparseMultiply_test_SOURCES = $(srcdir)/cxx_main.cpp \
+ $(srcdir)/scsrmm2.f $(srcdir)/GenerateHbProblem.hpp
+ 
+-BaseSparseMultiply_test_DEPENDENCIES = $(top_builddir)/src/libkokkos.a
++BaseSparseMultiply_test_DEPENDENCIES = $(top_builddir)/src/libkokkos.la
+ 
+ BaseSparseMultiply_test_CXXFLAGS = -I$(top_srcdir)/src
+ 
+-BaseSparseMultiply_test_LDADD = $(top_builddir)/src/libkokkos.a $(LIBS) \
++BaseSparseMultiply_test_LDADD = $(top_builddir)/src/libkokkos.la $(LIBS) \
+ 	$(BLAS_LIBS) $(FLIBS)
+ 
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/kokkos/test/BaseSparseSolve/Makefile.am trilinos-9.0.2-libtool/packages/kokkos/test/BaseSparseSolve/Makefile.am
+--- trilinos-9.0.2/packages/kokkos/test/BaseSparseSolve/Makefile.am	2004-03-10 23:41:47.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/kokkos/test/BaseSparseSolve/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -33,12 +33,12 @@
+ 
+ BaseSparseSolve_test_SOURCES = $(srcdir)/cxx_main.cpp $(srcdir)/scsrmm2a5.f
+ 
+-BaseSparseSolve_test_DEPENDENCIES = $(top_builddir)/src/libkokkos.a
++BaseSparseSolve_test_DEPENDENCIES = $(top_builddir)/src/libkokkos.la
+ 
+ BaseSparseSolve_test_CXXFLAGS = -I$(top_srcdir)/src \
+ -I$(srcdir)/../BaseSparseMultiply
+ 
+-BaseSparseSolve_test_LDADD = $(top_builddir)/src/libkokkos.a $(LIBS) \
++BaseSparseSolve_test_LDADD = $(top_builddir)/src/libkokkos.la $(LIBS) \
+ 	$(BLAS_LIBS) $(FLIBS)
+ 
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/kokkos/test/DenseMultiVector/Makefile.am trilinos-9.0.2-libtool/packages/kokkos/test/DenseMultiVector/Makefile.am
+--- trilinos-9.0.2/packages/kokkos/test/DenseMultiVector/Makefile.am	2004-03-10 23:41:48.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/kokkos/test/DenseMultiVector/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -33,11 +33,11 @@
+ 
+ DenseMultiVector_test_SOURCES = $(srcdir)/cxx_main.cpp
+ 
+-DenseMultiVector_test_DEPENDENCIES = $(top_builddir)/src/libkokkos.a
++DenseMultiVector_test_DEPENDENCIES = $(top_builddir)/src/libkokkos.la
+ 
+ DenseMultiVector_test_CXXFLAGS = -I$(top_srcdir)/src
+ 
+-DenseMultiVector_test_LDADD = $(top_builddir)/src/libkokkos.a $(LIBS) \
++DenseMultiVector_test_LDADD = $(top_builddir)/src/libkokkos.la $(LIBS) \
+ 	$(BLAS_LIBS) $(FLIBS)
+ 
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/kokkos/test/HbMatrix/Makefile.am trilinos-9.0.2-libtool/packages/kokkos/test/HbMatrix/Makefile.am
+--- trilinos-9.0.2/packages/kokkos/test/HbMatrix/Makefile.am	2004-03-10 23:41:48.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/kokkos/test/HbMatrix/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -33,11 +33,11 @@
+ 
+ HbMatrix_test_SOURCES = $(srcdir)/cxx_main.cpp $(srcdir)/GenerateHbProblem.hpp
+ 
+-HbMatrix_test_DEPENDENCIES = $(top_builddir)/src/libkokkos.a
++HbMatrix_test_DEPENDENCIES = $(top_builddir)/src/libkokkos.la
+ 
+ HbMatrix_test_CXXFLAGS = -I$(top_srcdir)/src
+ 
+-HbMatrix_test_LDADD = $(top_builddir)/src/libkokkos.a $(LIBS) \
++HbMatrix_test_LDADD = $(top_builddir)/src/libkokkos.la $(LIBS) \
+ 	$(BLAS_LIBS) $(FLIBS)
+ 
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/kokkos/test/Permutation/Makefile.am trilinos-9.0.2-libtool/packages/kokkos/test/Permutation/Makefile.am
+--- trilinos-9.0.2/packages/kokkos/test/Permutation/Makefile.am	2004-03-10 23:41:49.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/kokkos/test/Permutation/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -33,11 +33,11 @@
+ 
+ Permutation_test_SOURCES = $(srcdir)/cxx_main.cpp
+ 
+-Permutation_test_DEPENDENCIES = $(top_builddir)/src/libkokkos.a
++Permutation_test_DEPENDENCIES = $(top_builddir)/src/libkokkos.la
+ 
+ Permutation_test_CXXFLAGS = -I$(top_srcdir)/src
+ 
+-Permutation_test_LDADD = $(top_builddir)/src/libkokkos.a $(LIBS) \
++Permutation_test_LDADD = $(top_builddir)/src/libkokkos.la $(LIBS) \
+ 	$(BLAS_LIBS) $(FLIBS)
+ 
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/komplex/configure.ac trilinos-9.0.2-libtool/packages/komplex/configure.ac
+--- trilinos-9.0.2/packages/komplex/configure.ac	2008-09-17 22:38:25.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/komplex/configure.ac	2009-02-19 22:24:32.000000000 +0100
+@@ -118,7 +118,7 @@
+ AC_PROG_CXX(CC g++ c++ cxx)
+ BASE_CXX=${CXX}
+ #AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for --enable-debug, --enable-optimize, --enable-profile, --enable-purify
+@@ -154,6 +154,7 @@
+ # Checks for header files
+ # ------------------------------------------------------------------------
+ 
++AC_LANG_PUSH(C++)
+ AC_HEADER_STDC
+ AC_CHECK_HEADERS([cstdlib stdlib.h], [break],)
+ AC_CHECK_HEADERS([cstdio stdio.h], [break],)
+@@ -161,6 +162,7 @@
+ AC_CHECK_HEADERS([cmath math.h], [break],)
+ AC_CHECK_HEADERS([string string.h], [break],)
+ AC_CHECK_HEADERS([malloc.h],,)
++AC_LANG_POP(C++)
+ 
+ if test "X$ac_cv_header_cstdlib" != "Xyes" && test "X$ac_cv_header_stdlib_h" != "Xyes"; then
+   AC_MSG_ERROR([[Cannot find cstdlib or stdlib.h.  Komplex requires at least one or the other.]])
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/komplex/src/Makefile.am trilinos-9.0.2-libtool/packages/komplex/src/Makefile.am
+--- trilinos-9.0.2/packages/komplex/src/Makefile.am	2008-10-15 17:15:25.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/komplex/src/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -120,7 +120,7 @@
+ # Komplex library specifications
+ # ------------------------------------------------------------------------
+ 
+-KOMPLEX_LIB = libkomplex.a
++KOMPLEX_LIB = libkomplex.la
+ 
+ 
+ KOMPLEX_H = \
+@@ -133,7 +133,7 @@
+ 	$(MPI_H) \
+ 	$(MPISMP_H)
+ 
+-libkomplex_a_SOURCES = \
++libkomplex_la_SOURCES = \
+ 	$(CORE) \
+ 	$(SERIAL) \
+ 	$(LANG_WRAPS) \
+@@ -164,13 +164,14 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libkomplex_a_LIBADD = $(XTRALDADD)
++libkomplex_la_LIBADD = $(XTRALDADD)
++libkomplex_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+-lib_LIBRARIES = $(KOMPLEX_LIB)
++lib_LTLIBRARIES = $(KOMPLEX_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/meros/configure.ac trilinos-9.0.2-libtool/packages/meros/configure.ac
+--- trilinos-9.0.2/packages/meros/configure.ac	2008-09-22 16:36:49.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/meros/configure.ac	2009-02-19 22:26:02.000000000 +0100
+@@ -110,7 +110,7 @@
+ AC_PROG_CC(cc gcc)
+ AC_PROG_CXX(CC g++ c++ cxx)
+ #AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for extra flags
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/meros/src/Makefile.am trilinos-9.0.2-libtool/packages/meros/src/Makefile.am
+--- trilinos-9.0.2/packages/meros/src/Makefile.am	2008-10-15 17:15:26.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/meros/src/Makefile.am	2009-02-22 14:05:38.000000000 +0100
+@@ -210,7 +210,7 @@
+ # meros  library specifications
+ # ------------------------------------------------------------------------
+ 
+-MEROS_LIB = libmeros.a
++MEROS_LIB = libmeros.la
+ 
+ 
+ MEROS_H = \
+@@ -224,7 +224,7 @@
+ 	$(COMP_H) \
+ 	$(MPI_H)
+ 
+-libmeros_a_SOURCES = \
++libmeros_la_SOURCES = \
+ 	$(CORE) \
+ 	$(UTIL) \
+ 	$(UNIPROC) \
+@@ -258,13 +258,14 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libmeros_a_LIBADD = $(XTRALDADD)
++libmeros_la_LIBADD = $(XTRALDADD)
++libmeros_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+-lib_LIBRARIES = $(MEROS_LIB)
++lib_LTLIBRARIES = $(MEROS_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/configure.ac trilinos-9.0.2-libtool/packages/ml/configure.ac
+--- trilinos-9.0.2/packages/ml/configure.ac	2008-09-18 19:30:36.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/configure.ac	2009-02-19 22:18:58.000000000 +0100
+@@ -148,7 +148,7 @@
+ 
+ AC_PROG_CC(cc gcc)
+ AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Get the absolute path to the build directory.
+@@ -230,6 +230,7 @@
+ # Checks for header files - used in Epetra_ConfigDefs.h 
+ # ------------------------------------------------------------------------
+ 
++AC_LANG_PUSH(C++)
+ AC_CHECK_HEADERS([cstdlib stdlib.h], [break],)
+ AC_CHECK_HEADERS([cstdio stdio.h], [break],)
+ AC_CHECK_HEADERS([cassert assert.h], [break],)
+@@ -238,6 +239,7 @@
+ AC_CHECK_HEADERS([iostream iostream.h], [break],)
+ AC_CHECK_HEADERS([string string.h], [break],)
+ AC_CHECK_HEADERS([malloc.h],,)
++AC_LANG_POP(C++)
+ 
+ if test "X$ac_cv_header_cstdlib" != "Xyes" && test "X$ac_cv_header_stdlib_h" != "Xyes"; then
+   AC_MSG_ERROR([[Cannot find cstdlib or stdlib.h.  ml requires at least one or the other.]])
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/examples/Advanced/Makefile.am trilinos-9.0.2-libtool/packages/ml/examples/Advanced/Makefile.am
+--- trilinos-9.0.2/packages/ml/examples/Advanced/Makefile.am	2006-07-26 20:20:06.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/examples/Advanced/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -18,17 +18,17 @@
+ 		  ml_with_ifpack
+ 
+ ml_user_aggr_SOURCES      = $(srcdir)/ml_user_aggr.cpp
+-ml_user_aggr_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_user_aggr_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_user_aggr_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ ml_user_aggr_LDADD        = $(EXAMPLE_LIBS)
+ 
+ ml_filtering_SOURCES      = $(srcdir)/ml_filtering.cpp
+-ml_filtering_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_filtering_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_filtering_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ ml_filtering_LDADD        = $(EXAMPLE_LIBS)
+ 
+ ml_analyze_SOURCES      = $(srcdir)/ml_analyze.cpp
+-ml_analyze_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_analyze_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_analyze_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ ml_analyze_LDADD        = $(EXAMPLE_LIBS)
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/examples/BasicExamples/Makefile.am trilinos-9.0.2-libtool/packages/ml/examples/BasicExamples/Makefile.am
+--- trilinos-9.0.2/packages/ml/examples/BasicExamples/Makefile.am	2007-11-20 02:49:27.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/ml/examples/BasicExamples/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -19,22 +19,22 @@
+ CCLD = $(CXX)
+ 
+ ml_aztec_simple_SOURCES      = $(srcdir)/ml_aztec_simple.c
+-ml_aztec_simple_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_aztec_simple_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_aztec_simple_CFLAGS       = $(EXAMPLE_INCLUDES)
+ ml_aztec_simple_LDADD        = $(EXAMPLE_LIBS)
+ 
+ ml_operator_SOURCES      = $(srcdir)/ml_operator.cpp
+-ml_operator_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_operator_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_operator_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ ml_operator_LDADD        = $(EXAMPLE_LIBS)
+ 
+ ml_preconditioner_SOURCES      = $(srcdir)/ml_preconditioner.cpp
+-ml_preconditioner_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_preconditioner_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_preconditioner_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ ml_preconditioner_LDADD        = $(EXAMPLE_LIBS)
+ 
+ ml_readex_SOURCES      = $(srcdir)/ml_readex.c
+-ml_readex_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_readex_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_readex_CFLAGS       = $(EXAMPLE_INCLUDES)
+ ml_readex_LDADD        = $(EXAMPLE_LIBS)
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/examples/Elasticity/Makefile.am trilinos-9.0.2-libtool/packages/ml/examples/Elasticity/Makefile.am
+--- trilinos-9.0.2/packages/ml/examples/Elasticity/Makefile.am	2006-07-26 20:20:07.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/examples/Elasticity/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -15,12 +15,12 @@
+ CCLD = $(CXX)
+ 
+ ml_example_elasticity_SOURCES      = $(srcdir)/ml_example_elasticity.c
+-ml_example_elasticity_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_example_elasticity_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_example_elasticity_CFLAGS       = $(EXAMPLE_INCLUDES)
+ ml_example_elasticity_LDADD        = $(EXAMPLE_LIBS)
+ 
+ ml_read_elas_SOURCES      = $(srcdir)/ml_read_elas.c
+-ml_read_elas_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_read_elas_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_read_elas_CFLAGS       = $(EXAMPLE_INCLUDES)
+ ml_read_elas_LDADD        = $(EXAMPLE_LIBS)
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/examples/MatrixFormats/Makefile.am trilinos-9.0.2-libtool/packages/ml/examples/MatrixFormats/Makefile.am
+--- trilinos-9.0.2/packages/ml/examples/MatrixFormats/Makefile.am	2006-07-26 20:20:08.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/examples/MatrixFormats/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -15,16 +15,16 @@
+                   ml_MatrixFree
+ 
+ ml_AztecMsr_SOURCES      = $(srcdir)/ml_AztecMsr.cpp
+-ml_AztecMsr_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_AztecMsr_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_AztecMsr_CXXFLAGS     = ${EXAMPLE_INCLUDES} 
+ ml_AztecMsr_LDADD        = ${EXAMPLE_LIBS} 
+ 
+ ml_EpetraVbr_SOURCES      = $(srcdir)/ml_EpetraVbr.cpp
+-ml_EpetraVbr_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_EpetraVbr_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_EpetraVbr_CXXFLAGS     = ${EXAMPLE_INCLUDES}
+ ml_EpetraVbr_LDADD        = ${EXAMPLE_LIBS}
+ 
+ ml_MatrixFree_SOURCES      = $(srcdir)/ml_MatrixFree.cpp
+-ml_MatrixFree_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_MatrixFree_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_MatrixFree_CXXFLAGS     = ${EXAMPLE_INCLUDES}
+ ml_MatrixFree_LDADD        = ${EXAMPLE_LIBS}
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/examples/MatrixReading/Makefile.am trilinos-9.0.2-libtool/packages/ml/examples/MatrixReading/Makefile.am
+--- trilinos-9.0.2/packages/ml/examples/MatrixReading/Makefile.am	2006-07-26 20:20:09.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/examples/MatrixReading/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -12,6 +12,6 @@
+ noinst_PROGRAMS = ml_read_matrix_AIJ
+ 
+ ml_read_matrix_AIJ_SOURCES      = $(srcdir)/ml_read_matrix_AIJ.cpp
+-ml_read_matrix_AIJ_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_read_matrix_AIJ_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_read_matrix_AIJ_CXXFLAGS     = ${EXAMPLE_INCLUDES}
+ ml_read_matrix_AIJ_LDADD        = ${EXAMPLE_LIBS}
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/examples/Maxwell/Makefile.am trilinos-9.0.2-libtool/packages/ml/examples/Maxwell/Makefile.am
+--- trilinos-9.0.2/packages/ml/examples/Maxwell/Makefile.am	2006-07-26 20:20:09.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/examples/Maxwell/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -16,12 +16,12 @@
+ CCLD = $(CXX)
+ 
+ ml_maxwell_SOURCES      = $(srcdir)/ml_maxwell.cpp
+-ml_maxwell_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_maxwell_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_maxwell_CXXFLAGS     = ${EXAMPLE_INCLUDES}
+ ml_maxwell_LDADD        = ${EXAMPLE_LIBS}
+ 
+ ml_simple_max_SOURCES      = $(srcdir)/ml_simple_max.c
+-ml_simple_max_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_simple_max_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_simple_max_CFLAGS       = ${EXAMPLE_INCLUDES}
+ ml_simple_max_LDADD        = ${EXAMPLE_LIBS}
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/examples/MLAPI/Makefile.am trilinos-9.0.2-libtool/packages/ml/examples/MLAPI/Makefile.am
+--- trilinos-9.0.2/packages/ml/examples/MLAPI/Makefile.am	2006-07-26 20:20:07.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/examples/MLAPI/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -21,36 +21,36 @@
+ EXTRA_DIST = README
+ 
+ Blackboard_SOURCES      = $(srcdir)/Blackboard.cpp
+-Blackboard_DEPENDENCIES = $(top_builddir)/src/libml.a
++Blackboard_DEPENDENCIES = $(top_builddir)/src/libml.la
+ Blackboard_CXXFLAGS     = ${EXAMPLE_INCLUDES} 
+ Blackboard_LDADD        = ${EXAMPLE_LIBS} 
+ 
+ PowerMethod_SOURCES      = $(srcdir)/PowerMethod.cpp
+-PowerMethod_DEPENDENCIES = $(top_builddir)/src/libml.a
++PowerMethod_DEPENDENCIES = $(top_builddir)/src/libml.la
+ PowerMethod_CXXFLAGS     = ${EXAMPLE_INCLUDES} 
+ PowerMethod_LDADD        = ${EXAMPLE_LIBS} 
+ 
+ TwoLevelDDAdditive_SOURCES      = $(srcdir)/TwoLevelDDAdditive.cpp
+-TwoLevelDDAdditive_DEPENDENCIES = $(top_builddir)/src/libml.a
++TwoLevelDDAdditive_DEPENDENCIES = $(top_builddir)/src/libml.la
+ TwoLevelDDAdditive_CXXFLAGS     = ${EXAMPLE_INCLUDES} 
+ TwoLevelDDAdditive_LDADD        = ${EXAMPLE_LIBS} 
+ 
+ MultiLevel_SOURCES      = $(srcdir)/MultiLevel.cpp
+-MultiLevel_DEPENDENCIES = $(top_builddir)/src/libml.a
++MultiLevel_DEPENDENCIES = $(top_builddir)/src/libml.la
+ MultiLevel_CXXFLAGS     = ${EXAMPLE_INCLUDES} 
+ MultiLevel_LDADD        = ${EXAMPLE_LIBS} 
+ 
+ AdaptiveSA_SOURCES      = $(srcdir)/AdaptiveSA.cpp
+-AdaptiveSA_DEPENDENCIES = $(top_builddir)/src/libml.a
++AdaptiveSA_DEPENDENCIES = $(top_builddir)/src/libml.la
+ AdaptiveSA_CXXFLAGS     = ${EXAMPLE_INCLUDES} 
+ AdaptiveSA_LDADD        = ${EXAMPLE_LIBS} 
+ 
+ EpetraInterface_SOURCES      = $(srcdir)/EpetraInterface.cpp
+-EpetraInterface_DEPENDENCIES = $(top_builddir)/src/libml.a
++EpetraInterface_DEPENDENCIES = $(top_builddir)/src/libml.la
+ EpetraInterface_CXXFLAGS     = ${EXAMPLE_INCLUDES} 
+ EpetraInterface_LDADD        = ${EXAMPLE_LIBS} 
+ 
+ Richardson_SOURCES      = $(srcdir)/Richardson.cpp
+-Richardson_DEPENDENCIES = $(top_builddir)/src/libml.a
++Richardson_DEPENDENCIES = $(top_builddir)/src/libml.la
+ Richardson_CXXFLAGS     = ${EXAMPLE_INCLUDES} 
+ Richardson_LDADD        = ${EXAMPLE_LIBS} 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/examples/MultipleRHS/Makefile.am trilinos-9.0.2-libtool/packages/ml/examples/MultipleRHS/Makefile.am
+--- trilinos-9.0.2/packages/ml/examples/MultipleRHS/Makefile.am	2006-07-26 20:20:10.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/examples/MultipleRHS/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -12,6 +12,6 @@
+ noinst_PROGRAMS = ml_multiple_rhs
+ 
+ ml_multiple_rhs_SOURCES      = $(srcdir)/ml_multiple_rhs.cpp
+-ml_multiple_rhs_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_multiple_rhs_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_multiple_rhs_CXXFLAGS     = $(EXAMPLE_INCLUDES)
+ ml_multiple_rhs_LDADD        = $(EXAMPLE_LIBS)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/examples/Other/Makefile.am trilinos-9.0.2-libtool/packages/ml/examples/Other/Makefile.am
+--- trilinos-9.0.2/packages/ml/examples/Other/Makefile.am	2006-07-26 20:20:11.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/examples/Other/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -19,31 +19,31 @@
+ CCLD = $(CXX)
+ 
+ ml_example2d_SOURCES      = $(srcdir)/ml_example2d.c
+-ml_example2d_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_example2d_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_example2d_LDADD        = ${EXAMPLE_LIBS}
+ ml_example2d_CFLAGS       = ${EXAMPLE_INCLUDES}
+ 
+ ml_example3d_SOURCES      = $(srcdir)/ml_example3d.c
+-ml_example3d_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_example3d_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_example3d_LDADD        = ${EXAMPLE_LIBS}
+ ml_example3d_CFLAGS       = ${EXAMPLE_INCLUDES}
+ 
+ ml_read_elas_SOURCES      = $(srcdir)/ml_read_elas.c
+-ml_read_elas_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_read_elas_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_read_elas_LDADD        = ${EXAMPLE_LIBS}
+ ml_read_elas_CFLAGS       = ${EXAMPLE_INCLUDES}
+ 
+ ml_readfile_SOURCES      = $(srcdir)/ml_readfile.c
+-ml_readfile_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_readfile_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_readfile_LDADD        = ${EXAMPLE_LIBS}
+ ml_readfile_CFLAGS       = ${EXAMPLE_INCLUDES}
+ 
+ ml_read_salsa_SOURCES      = $(srcdir)/ml_read_salsa.c
+-ml_read_salsa_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_read_salsa_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_read_salsa_LDADD        = ${EXAMPLE_LIBS}
+ ml_read_salsa_CFLAGS       = ${EXAMPLE_INCLUDES}
+ 
+ ml_recirc_SOURCES      = $(srcdir)/ml_recirc.c
+-ml_recirc_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_recirc_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_recirc_LDADD        = ${EXAMPLE_LIBS}
+ ml_recirc_CFLAGS       = ${EXAMPLE_INCLUDES}
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/examples/StandAlone/Makefile.am trilinos-9.0.2-libtool/packages/ml/examples/StandAlone/Makefile.am
+--- trilinos-9.0.2/packages/ml/examples/StandAlone/Makefile.am	2006-07-26 20:20:11.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/examples/StandAlone/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -17,21 +17,21 @@
+ CCLD = $(CXX)
+ 
+ mlguide_SOURCES      = $(srcdir)/mlguide.c
+-mlguide_DEPENDENCIES = $(top_builddir)/src/libml.a
++mlguide_DEPENDENCIES = $(top_builddir)/src/libml.la
+ mlguide_LDADD        = ${EXAMPLE_LIBS}
+ mlguide_CFLAGS       = ${EXAMPLE_INCLUDES}
+ 
+ mlguide_par_SOURCES      = $(srcdir)/mlguide_par.c
+-mlguide_par_DEPENDENCIES = $(top_builddir)/src/libml.a
++mlguide_par_DEPENDENCIES = $(top_builddir)/src/libml.la
+ mlguide_par_LDADD        = ${EXAMPLE_LIBS}
+ mlguide_par_CFLAGS       = ${EXAMPLE_INCLUDES}
+ 
+ ml_example1d_SOURCES      = $(srcdir)/ml_example1d.c
+-ml_example1d_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_example1d_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_example1d_LDADD        = ${EXAMPLE_LIBS}
+ ml_example1d_CFLAGS       = ${EXAMPLE_INCLUDES}
+ 
+ ml_example1dGS_SOURCES      = $(srcdir)/ml_example1dGS.c
+-ml_example1dGS_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_example1dGS_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_example1dGS_LDADD        = ${EXAMPLE_LIBS}
+ ml_example1dGS_CFLAGS       = ${EXAMPLE_INCLUDES}
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/examples/TwoLevelDD/Makefile.am trilinos-9.0.2-libtool/packages/ml/examples/TwoLevelDD/Makefile.am
+--- trilinos-9.0.2/packages/ml/examples/TwoLevelDD/Makefile.am	2006-07-26 20:20:12.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/examples/TwoLevelDD/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -12,6 +12,6 @@
+ noinst_PROGRAMS = ml_2level_DD
+ 
+ ml_2level_DD_SOURCES      = $(srcdir)/ml_2level_DD.cpp
+-ml_2level_DD_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_2level_DD_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_2level_DD_CXXFLAGS     = ${EXAMPLE_INCLUDES} 
+ ml_2level_DD_LDADD        = ${EXAMPLE_LIBS} 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/examples/Visualization/Makefile.am trilinos-9.0.2-libtool/packages/ml/examples/Visualization/Makefile.am
+--- trilinos-9.0.2/packages/ml/examples/Visualization/Makefile.am	2006-07-26 20:20:12.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/examples/Visualization/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -11,6 +11,6 @@
+ 
+ noinst_PROGRAMS = ml_viz
+ ml_viz_SOURCES      = $(srcdir)/ml_viz.cpp
+-ml_viz_DEPENDENCIES = $(top_builddir)/src/libml.a
++ml_viz_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ml_viz_CXXFLAGS     = ${EXAMPLE_INCLUDES} 
+ ml_viz_LDADD        = ${EXAMPLE_LIBS} 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/src/Makefile.am trilinos-9.0.2-libtool/packages/ml/src/Makefile.am
+--- trilinos-9.0.2/packages/ml/src/Makefile.am	2008-08-09 02:12:33.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/src/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -381,7 +381,7 @@
+ # ------------------------------------------------------------------------
+ # ml library specifications
+ # ------------------------------------------------------------------------
+-ML_LIB = libml.a
++ML_LIB = libml.la
+ 
+ ML_H = \
+ 	$(CORE_H) \
+@@ -395,7 +395,7 @@
+ 	$(MPI_H) 
+ #	$(NEWP_SWAHILI_H)
+ 
+-libml_a_SOURCES = \
++libml_la_SOURCES = \
+ 	$(CORE) \
+ 	$(UTIL) \
+ 	$(UNIPROC) \
+@@ -405,7 +405,7 @@
+ 	$(MPI) 
+ #	$(NEWP_SWAHILI)
+ 
+-EXTRA_libml_a_SOURCES = \
++EXTRA_libml_la_SOURCES = \
+ 	$(EXTRA_MPI) \
+ 	$(EXTRA_MPI_H) 
+ #	$(EXTRA_NEWP_SWAHILI) \
+@@ -437,19 +437,26 @@
+ 
+ if ML_USING_TEUCHOS
+ 
+-libml_a_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD)
++libml_la_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD) \
++		       ../../teuchos/src/libteuchos.la \
++		       ../../ifpack/src/libifpack.la \
++		       ../../aztecoo/src/libaztecoo.la \
++		       ../../epetra/src/libepetra.la \
++		       ../../epetraext/src/libepetraext.la \
++		       ../../triutils/src/libtriutils.la
+ 
+ else
+ 
+-libml_a_LIBADD = $(XTRALDADD)
++libml_la_LIBADD = $(XTRALDADD)
+ 
+ endif
+ 
++libml_la_LDFLAGS = -release $(VERSION)
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+-lib_LIBRARIES = $(ML_LIB)
++lib_LTLIBRARIES = $(ML_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/test/2d_Poisson/Makefile.am trilinos-9.0.2-libtool/packages/ml/test/2d_Poisson/Makefile.am
+--- trilinos-9.0.2/packages/ml/test/2d_Poisson/Makefile.am	2008-08-01 20:14:20.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/test/2d_Poisson/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -44,9 +44,6 @@
+           $(BLAS_LIBS)      \
+           $(FLIBS)
+ 
+-mllink = $(CXX) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+-
+ 2d_Poisson_CPPFLAGS = ${ml_common_include_locations} -DML_BENCHMARK
+ 2d_Poisson_CXXFLAGS = ${ml_common_include_locations} -DML_BENCHMARK
+ 2d_Poisson_LDADD = ${ml_libs}
+-2d_Poisson_LINK = ${mllink}
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/test/3d_Poisson/Makefile.am trilinos-9.0.2-libtool/packages/ml/test/3d_Poisson/Makefile.am
+--- trilinos-9.0.2/packages/ml/test/3d_Poisson/Makefile.am	2008-08-01 20:14:20.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/test/3d_Poisson/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -43,9 +43,6 @@
+           $(BLAS_LIBS)      \
+           $(FLIBS)
+ 
+-mllink = $(CXX) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+-
+ 3d_Poisson_CPPFLAGS = ${ml_common_include_locations} -DML_BENCHMARK
+ 3d_Poisson_CXXFLAGS = ${ml_common_include_locations} -DML_BENCHMARK
+ 3d_Poisson_LDADD = ${ml_libs}
+-3d_Poisson_LINK = ${mllink}
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/test/AztecSimple/Makefile.am trilinos-9.0.2-libtool/packages/ml/test/AztecSimple/Makefile.am
+--- trilinos-9.0.2/packages/ml/test/AztecSimple/Makefile.am	2008-08-01 20:14:20.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/test/AztecSimple/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -14,6 +14,6 @@
+ CCLD = $(CXX)
+ 
+ AztecSimple_SOURCES      = $(srcdir)/AztecSimple.c
+-AztecSimple_DEPENDENCIES = $(top_builddir)/src/libml.a
++AztecSimple_DEPENDENCIES = $(top_builddir)/src/libml.la
+ AztecSimple_CFLAGS       = ${TEST_INCLUDES}
+ AztecSimple_LDADD        = ${TEST_LIBS}
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/test/Communicator/Makefile.am trilinos-9.0.2-libtool/packages/ml/test/Communicator/Makefile.am
+--- trilinos-9.0.2/packages/ml/test/Communicator/Makefile.am	2008-08-01 20:14:20.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/test/Communicator/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -12,6 +12,6 @@
+ noinst_PROGRAMS = Communicator
+ 
+ Communicator_SOURCES      = $(srcdir)/cxx_main.cpp
+-Communicator_DEPENDENCIES = $(top_builddir)/src/libml.a
++Communicator_DEPENDENCIES = $(top_builddir)/src/libml.la
+ Communicator_CXXFLAGS     = ${TEST_INCLUDES}
+ Communicator_LDADD        = ${TEST_LIBS}
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/test/IFPACKSmoothers/Makefile.am trilinos-9.0.2-libtool/packages/ml/test/IFPACKSmoothers/Makefile.am
+--- trilinos-9.0.2/packages/ml/test/IFPACKSmoothers/Makefile.am	2008-08-01 20:14:20.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/test/IFPACKSmoothers/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -12,6 +12,6 @@
+ noinst_PROGRAMS = IFPACKSmoothers
+ 
+ IFPACKSmoothers_SOURCES      = $(srcdir)/cxx_main.cpp
+-IFPACKSmoothers_DEPENDENCIES = $(top_builddir)/src/libml.a
++IFPACKSmoothers_DEPENDENCIES = $(top_builddir)/src/libml.la
+ IFPACKSmoothers_CXXFLAGS     = ${TEST_INCLUDES}
+ IFPACKSmoothers_LDADD        = ${TEST_LIBS}
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/test/MLAPICompare/Makefile.am trilinos-9.0.2-libtool/packages/ml/test/MLAPICompare/Makefile.am
+--- trilinos-9.0.2/packages/ml/test/MLAPICompare/Makefile.am	2008-08-01 20:14:21.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/test/MLAPICompare/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -13,6 +13,6 @@
+ noinst_PROGRAMS = MLAPICompare
+ 
+ MLAPICompare_SOURCES      = $(srcdir)/cxx_main.cpp
+-MLAPICompare_DEPENDENCIES = $(top_builddir)/src/libml.a
++MLAPICompare_DEPENDENCIES = $(top_builddir)/src/libml.la
+ MLAPICompare_CXXFLAGS     = ${TEST_INCLUDES}
+ MLAPICompare_LDADD        = ${TEST_LIBS}
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/test/ML_Operator2Epetra_RowMatrix/Makefile.am trilinos-9.0.2-libtool/packages/ml/test/ML_Operator2Epetra_RowMatrix/Makefile.am
+--- trilinos-9.0.2/packages/ml/test/ML_Operator2Epetra_RowMatrix/Makefile.am	2008-08-01 20:14:21.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/test/ML_Operator2Epetra_RowMatrix/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -13,6 +13,6 @@
+ 
+ ML_Operator2Epetra_RowMatrix_SOURCES      = $(srcdir)/ML_Operator2Epetra_RowMatrix.cpp
+ 
+-ML_Operator2Epetra_RowMatrix_DEPENDENCIES = $(top_builddir)/src/libml.a
++ML_Operator2Epetra_RowMatrix_DEPENDENCIES = $(top_builddir)/src/libml.la
+ ML_Operator2Epetra_RowMatrix_CXXFLAGS     = ${TEST_INCLUDES}
+ ML_Operator2Epetra_RowMatrix_LDADD        = ${TEST_LIBS}
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/test/MultiLevelPreconditioner_Aux/Makefile.am trilinos-9.0.2-libtool/packages/ml/test/MultiLevelPreconditioner_Aux/Makefile.am
+--- trilinos-9.0.2/packages/ml/test/MultiLevelPreconditioner_Aux/Makefile.am	2008-08-01 20:14:22.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/test/MultiLevelPreconditioner_Aux/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -12,6 +12,6 @@
+ noinst_PROGRAMS = MultiLevelPreconditioner_Aux
+ 
+ MultiLevelPreconditioner_Aux_SOURCES      = $(srcdir)/MultiLevelPreconditioner_Aux.cpp
+-MultiLevelPreconditioner_Aux_DEPENDENCIES = $(top_builddir)/src/libml.a
++MultiLevelPreconditioner_Aux_DEPENDENCIES = $(top_builddir)/src/libml.la
+ MultiLevelPreconditioner_Aux_CXXFLAGS     = ${TEST_INCLUDES}
+ MultiLevelPreconditioner_Aux_LDADD        = ${TEST_LIBS}
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/test/MultiLevelPreconditioner_Maxwell/Makefile.am trilinos-9.0.2-libtool/packages/ml/test/MultiLevelPreconditioner_Maxwell/Makefile.am
+--- trilinos-9.0.2/packages/ml/test/MultiLevelPreconditioner_Maxwell/Makefile.am	2008-08-01 20:14:22.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/test/MultiLevelPreconditioner_Maxwell/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -12,6 +12,6 @@
+ noinst_PROGRAMS = MultiLevelPreconditioner_Maxwell
+ 
+ MultiLevelPreconditioner_Maxwell_SOURCES      = $(srcdir)/MultiLevelPreconditioner_Maxwell.cpp
+-MultiLevelPreconditioner_Maxwell_DEPENDENCIES = $(top_builddir)/src/libml.a
++MultiLevelPreconditioner_Maxwell_DEPENDENCIES = $(top_builddir)/src/libml.la
+ MultiLevelPreconditioner_Maxwell_CXXFLAGS     = ${TEST_INCLUDES}
+ MultiLevelPreconditioner_Maxwell_LDADD        = ${TEST_LIBS}
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/test/MultiLevelPreconditioner_NonSym/Makefile.am trilinos-9.0.2-libtool/packages/ml/test/MultiLevelPreconditioner_NonSym/Makefile.am
+--- trilinos-9.0.2/packages/ml/test/MultiLevelPreconditioner_NonSym/Makefile.am	2008-08-01 20:14:22.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/test/MultiLevelPreconditioner_NonSym/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -12,6 +12,6 @@
+ noinst_PROGRAMS = MultiLevelPreconditioner_NonSym
+ 
+ MultiLevelPreconditioner_NonSym_SOURCES      = $(srcdir)/MultiLevelPreconditioner_NonSym.cpp
+-MultiLevelPreconditioner_NonSym_DEPENDENCIES = $(top_builddir)/src/libml.a
++MultiLevelPreconditioner_NonSym_DEPENDENCIES = $(top_builddir)/src/libml.la
+ MultiLevelPreconditioner_NonSym_CXXFLAGS     = ${TEST_INCLUDES}
+ MultiLevelPreconditioner_NonSym_LDADD        = ${TEST_LIBS}
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/test/MultiLevelPreconditioner_Sym/Makefile.am trilinos-9.0.2-libtool/packages/ml/test/MultiLevelPreconditioner_Sym/Makefile.am
+--- trilinos-9.0.2/packages/ml/test/MultiLevelPreconditioner_Sym/Makefile.am	2008-08-01 20:14:22.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/test/MultiLevelPreconditioner_Sym/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -12,6 +12,6 @@
+ noinst_PROGRAMS = MultiLevelPreconditioner_Sym 
+ 
+ MultiLevelPreconditioner_Sym_SOURCES      = $(srcdir)/MultiLevelPreconditioner_Sym.cpp
+-MultiLevelPreconditioner_Sym_DEPENDENCIES = $(top_builddir)/src/libml.a
++MultiLevelPreconditioner_Sym_DEPENDENCIES = $(top_builddir)/src/libml.la
+ MultiLevelPreconditioner_Sym_CXXFLAGS     = ${TEST_INCLUDES}
+ MultiLevelPreconditioner_Sym_LDADD        = ${TEST_LIBS}
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ml/test/SelfSmoother/Makefile.am trilinos-9.0.2-libtool/packages/ml/test/SelfSmoother/Makefile.am
+--- trilinos-9.0.2/packages/ml/test/SelfSmoother/Makefile.am	2008-08-01 20:14:23.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ml/test/SelfSmoother/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -12,6 +12,6 @@
+ noinst_PROGRAMS = SelfSmoother
+ 
+ SelfSmoother_SOURCES      = $(srcdir)/cxx_main.cpp
+-SelfSmoother_DEPENDENCIES = $(top_builddir)/src/libml.a
++SelfSmoother_DEPENDENCIES = $(top_builddir)/src/libml.la
+ SelfSmoother_CXXFLAGS     = $(TEST_INCLUDES)
+ SelfSmoother_LDADD        = ${TEST_LIBS}
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/moertel/configure.ac trilinos-9.0.2-libtool/packages/moertel/configure.ac
+--- trilinos-9.0.2/packages/moertel/configure.ac	2008-09-19 23:01:33.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/moertel/configure.ac	2009-02-19 22:24:43.000000000 +0100
+@@ -111,7 +111,7 @@
+ AC_PROG_CC(cc gcc)
+ AC_PROG_CXX(CC g++ c++ cxx)
+ #AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for extra flags
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/moertel/src/Makefile.am trilinos-9.0.2-libtool/packages/moertel/src/Makefile.am
+--- trilinos-9.0.2/packages/moertel/src/Makefile.am	2008-10-15 17:15:30.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/moertel/src/Makefile.am	2009-02-22 14:06:20.000000000 +0100
+@@ -97,13 +97,13 @@
+ # Moertel library specifications
+ # ------------------------------------------------------------------------
+ 
+-MOERTEL_LIB = libmoertel.a
++MOERTEL_LIB = libmoertel.la
+ 
+ MOERTEL_H = \
+ 	$(CORE_H) \
+ 	$(UTIL_H)
+ 
+-libmoertel_a_SOURCES = \
++libmoertel_la_SOURCES = \
+ 	$(CORE) \
+ 	$(UTIL)
+ 
+@@ -131,13 +131,14 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libmoertel_a_LIBADD = $(XTRALDADD)
++libmoertel_la_LIBADD = $(XTRALDADD)
++libmoertel_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+-lib_LIBRARIES = $(MOERTEL_LIB)
++lib_LTLIBRARIES = $(MOERTEL_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/moocho/configure.ac trilinos-9.0.2-libtool/packages/moocho/configure.ac
+--- trilinos-9.0.2/packages/moocho/configure.ac	2008-09-18 14:57:07.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/moocho/configure.ac	2009-02-19 22:18:58.000000000 +0100
+@@ -120,7 +120,7 @@
+ AC_PROG_CC(cc gcc)
+ AC_PROG_CXX(CC g++ c++ cxx)
+ AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for extra flags
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/moocho/src/Makefile.am trilinos-9.0.2-libtool/packages/moocho/src/Makefile.am
+--- trilinos-9.0.2/packages/moocho/src/Makefile.am	2008-10-15 17:15:31.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/moocho/src/Makefile.am	2009-02-22 14:07:05.000000000 +0100
+@@ -990,7 +990,7 @@
+ # Moocho library specifications
+ # --------------------------------------------------------------------
+ 
+-MOOCHO_LIB = libmoocho.a
++MOOCHO_LIB = libmoocho.la
+ 
+ MOOCHO_H = \
+   $(srcdir)/Moocho_ConfigDefs.hpp \
+@@ -1006,7 +1006,7 @@
+   $(CONSTRAINED_OPT_PACK_HPP) \
+   $(MOOCHO_PACK_HPP)
+ 
+-libmoocho_a_SOURCES = \
++libmoocho_la_SOURCES = \
+   $(MOOCHO_UTILITIES_CPP) \
+   $(MOOCHO_UTILITIES_F) \
+   $(ITERATION_PACK_CPP) \
+@@ -1048,13 +1048,14 @@
+ # I have not been able to find any kind of "or" for Automake
+ # conditionals. JW
+ 
+-libmoocho_a_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD)
++libmoocho_la_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD)
++libmoocho_la_LDFLAGS = -release $(VERSION)
+ 
+ # --------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # --------------------------------------------------------------------
+ 
+-lib_LIBRARIES = $(MOOCHO_LIB)
++lib_LTLIBRARIES = $(MOOCHO_LIB)
+ 
+ # --------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/new_package/configure.ac trilinos-9.0.2-libtool/packages/new_package/configure.ac
+--- trilinos-9.0.2/packages/new_package/configure.ac	2008-09-19 23:11:40.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/new_package/configure.ac	2009-02-19 22:18:58.000000000 +0100
+@@ -126,7 +126,7 @@
+ AC_PROG_CC(cc gcc)
+ AC_PROG_CXX(CC g++ c++ cxx)
+ AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for extra flags
+@@ -163,12 +163,14 @@
+ # Checks for header files - used in Epetra_ConfigDefs.h 
+ # ------------------------------------------------------------------------
+ 
++AC_LANG_PUSH(C++)
+ AC_CHECK_HEADERS([cstdlib stdlib.h], [break],)
+ AC_CHECK_HEADERS([cstdio stdio.h], [break],)
+ AC_CHECK_HEADERS([cassert assert.h], [break],)
+ AC_CHECK_HEADERS([cmath math.h], [break],)
+ AC_CHECK_HEADERS([iostream iostream.h], [break],)
+ AC_CHECK_HEADERS([string string.h], [break],)
++AC_LANG_POP(C++)
+ 
+ if test "X$ac_cv_header_cstdlib" != "Xyes" && test "X$ac_cv_header_stdlib_h" != "Xyes"; then
+   AC_MSG_ERROR([[Cannot find cstdlib or stdlib.h.  New_Package requires at least one or the other.]])
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/new_package/src/Makefile.am trilinos-9.0.2-libtool/packages/new_package/src/Makefile.am
+--- trilinos-9.0.2/packages/new_package/src/Makefile.am	2008-07-11 18:53:29.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/new_package/src/Makefile.am	2009-02-22 14:07:31.000000000 +0100
+@@ -148,7 +148,7 @@
+ # New_Package library specifications
+ # ------------------------------------------------------------------------
+ #np# replace new_package with the name of the package being autotool'ed here
+-NEW_PACKAGE_LIB = libnew_package.a
++NEW_PACKAGE_LIB = libnew_package.la
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+ NEW_PACKAGE_H = \
+@@ -164,7 +164,7 @@
+ 	$(NEWP_SWAHILI_H)
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-libnew_package_a_SOURCES = \
++libnew_package_la_SOURCES = \
+ 	$(CORE) \
+ 	$(UTIL) \
+ 	$(UNIPROC) \
+@@ -175,7 +175,7 @@
+ 	$(NEWP_SWAHILI)
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-EXTRA_libnew_package_a_SOURCES = \
++EXTRA_libnew_package_la_SOURCES = \
+ 	$(EXTRA_MPI) \
+ 	$(EXTRA_MPI_H) \
+ 	$(EXTRA_NEWP_SWAHILI) \
+@@ -208,14 +208,15 @@
+ # ------------------------------------------------------------------------
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-libnew_package_a_LIBADD = $(XTRALDADD)
++libnew_package_la_LIBADD = $(XTRALDADD)
++libnew_package_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-lib_LIBRARIES = $(NEW_PACKAGE_LIB)
++lib_LTLIBRARIES = $(NEW_PACKAGE_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/nox/configure.ac trilinos-9.0.2-libtool/packages/nox/configure.ac
+--- trilinos-9.0.2/packages/nox/configure.ac	2008-09-18 23:10:48.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/nox/configure.ac	2009-02-19 22:18:58.000000000 +0100
+@@ -112,7 +112,7 @@
+ AC_PROG_CXX(CC g++ c++ cxx)
+ AC_PROG_CXXCPP
+ AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for extra flags
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/nox/src/Makefile.am trilinos-9.0.2-libtool/packages/nox/src/Makefile.am
+--- trilinos-9.0.2/packages/nox/src/Makefile.am	2008-07-11 18:53:29.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/nox/src/Makefile.am	2009-02-19 22:54:01.000000000 +0100
+@@ -43,14 +43,14 @@
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+-lib_LIBRARIES = libnox.a
++lib_LTLIBRARIES = libnox.la
+ 
+ # ------------------------------------------------------------------------
+ # Nox library specifications
+ # ------------------------------------------------------------------------
+ 
+ 
+-libnox_a_SOURCES = \
++libnox_la_SOURCES = \
+ 	$(ABSTRACT) \
+ 	$(LINESEARCH) \
+ 	$(DIRECTION) \
+@@ -61,7 +61,7 @@
+ 	$(MULTIVECS) \
+ 	$(MULTIPHYSICS)
+ 
+-libnox_a_CXXFLAGS = -I$(top_srcdir)/src $(TRILINOS_CXXFLAGS) 
++libnox_la_CXXFLAGS = -I$(top_srcdir)/src $(TRILINOS_CXXFLAGS) 
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+@@ -95,7 +95,7 @@
+ 	$(srcdir)/NOX_Direction_ModifiedNewton.H
+ 
+ 
+-nodist_libnox_a_SOURCES = \
++nodist_libnox_la_SOURCES = \
+ 	$(srcdir)/NOX_Solver_TensorBasedTest.C \
+ 	$(srcdir)/NOX_LineSearch_Tensor.C \
+ 	$(srcdir)/NOX_Direction_Tensor.C \
+@@ -304,7 +304,14 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libnox_a_LIBADD = $(CXXREPOS) $(XTRALDADD)
++libnox_la_LIBADD = $(CXXREPOS) $(XTRALDADD) \
++		       ../../teuchos/src/libteuchos.la \
++		       ../../epetra/src/libepetra.la \
++		       ../../aztecoo/src/libaztecoo.la \
++		       ../../ifpack/src/libifpack.la \
++		       ../../epetraext/src/libepetraext.la \
++		       ../../ml/src/libml.la
++libnox_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # Files to be deleted by 'make maintainer-clean'
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/nox/src-belos/Makefile.am trilinos-9.0.2-libtool/packages/nox/src-belos/Makefile.am
+--- trilinos-9.0.2/packages/nox/src-belos/Makefile.am	2006-08-22 02:01:31.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/nox/src-belos/Makefile.am	2009-02-22 14:08:38.000000000 +0100
+@@ -62,7 +62,7 @@
+ # Noxbelos library specifications
+ # ------------------------------------------------------------------------
+ 
+-libnoxbelos_a_SOURCES = $(NOX_BELOS_H) $(NOX_BELOS)
++libnoxbelos_la_SOURCES = $(NOX_BELOS_H) $(NOX_BELOS)
+ 
+ # ------------------------------------------------------------------------
+ # Includes for required and optional library dependencies
+@@ -85,7 +85,7 @@
+ 
+ # List of all libraries to install in $(libexecdir)
+ 
+-lib_LIBRARIES = libnoxbelos.a
++lib_LTLIBRARIES = libnoxbelos.la
+ 
+ # List of all headers to install in $(includedir)
+ 
+@@ -116,7 +116,8 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libnoxbelos_a_LIBADD = $(CXXREPOS) $(XTRALDADD)
++libnoxbelos_la_LIBADD = $(CXXREPOS) $(XTRALDADD)
++libnoxbelos_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # Files to be deleted by 'make maintainer-clean'
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/nox/src-epetra/Makefile.am trilinos-9.0.2-libtool/packages/nox/src-epetra/Makefile.am
+--- trilinos-9.0.2/packages/nox/src-epetra/Makefile.am	2006-09-12 19:18:58.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/nox/src-epetra/Makefile.am	2009-02-22 14:09:07.000000000 +0100
+@@ -113,7 +113,7 @@
+ 
+ # List of all libraries to install in $(libexecdir)
+ 
+-lib_LIBRARIES = libnoxepetra.a
++lib_LTLIBRARIES = libnoxepetra.la
+ 
+ # List of all headers to install in $(includedir)
+ 
+@@ -144,7 +144,8 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libnoxepetra_a_LIBADD = $(CXXREPOS) $(XTRALDADD)
++libnoxepetra_la_LIBADD = $(CXXREPOS) $(XTRALDADD)
++libnoxepetra_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # Files to be deleted by 'make maintainer-clean'
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/nox/src-lapack/Makefile.am trilinos-9.0.2-libtool/packages/nox/src-lapack/Makefile.am
+--- trilinos-9.0.2/packages/nox/src-lapack/Makefile.am	2008-07-18 18:44:41.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/nox/src-lapack/Makefile.am	2009-02-22 14:09:35.000000000 +0100
+@@ -62,7 +62,7 @@
+ # Noxblas library specifications
+ # ------------------------------------------------------------------------
+ 
+-libnoxlapack_a_SOURCES = $(NOX_LAPACK) $(NOX_LAPACK_H) 
++libnoxlapack_la_SOURCES = $(NOX_LAPACK) $(NOX_LAPACK_H) 
+ 
+ # ------------------------------------------------------------------------
+ # Includes for required and optional library dependencies
+@@ -85,7 +85,7 @@
+ 
+ # List of all libraries to install in $(libexecdir)
+ 
+-lib_LIBRARIES = libnoxlapack.a
++lib_LTLIBRARIES = libnoxlapack.la
+ 
+ # List of all headers to install in $(includedir)
+ 
+@@ -116,7 +116,8 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libnoxlapack_a_LIBADD = $(CXXREPOS)
++libnoxlapack_la_LIBADD = $(CXXREPOS)
++libnoxlapack_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # Files to be deleted by 'make maintainer-clean'
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/nox/src-loca/src/Makefile.am trilinos-9.0.2-libtool/packages/nox/src-loca/src/Makefile.am
+--- trilinos-9.0.2/packages/nox/src-loca/src/Makefile.am	2007-03-01 21:10:51.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/nox/src-loca/src/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -433,7 +433,7 @@
+ # Loca library specifications
+ # ------------------------------------------------------------------------
+ 
+-libloca_a_SOURCES = $(LOCA_H) $(LOCA)
++libloca_la_SOURCES = $(LOCA_H) $(LOCA)
+ 
+ EXTRA_libloca_a_SOURCES = $(EXTRA_LOCA_ANASAZI) $(EXTRA_LOCA_ANASAZI_H) 
+ 
+@@ -450,7 +450,7 @@
+ 
+ # List of all libraries to install in $(libexecdir)
+ 
+-lib_LIBRARIES = libloca.a
++lib_LTLIBRARIES = libloca.la
+ 
+ # List of all headers to install in $(includedir)
+ 
+@@ -481,7 +481,8 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libloca_a_LIBADD = $(CXXREPOS) $(XTRALDADD)
++libloca_la_LIBADD = $(CXXREPOS) $(XTRALDADD)
++libloca_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # Files to be deleted by 'make maintainer-clean'
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/nox/src-loca/src-epetra/Makefile.am trilinos-9.0.2-libtool/packages/nox/src-loca/src-epetra/Makefile.am
+--- trilinos-9.0.2/packages/nox/src-loca/src-epetra/Makefile.am	2008-06-11 19:26:56.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/nox/src-loca/src-epetra/Makefile.am	2009-02-22 14:13:47.000000000 +0100
+@@ -134,7 +134,7 @@
+ 
+ # List of all libraries to install in $(libexecdir)
+ 
+-lib_LIBRARIES = liblocaepetra.a
++lib_LTLIBRARIES = liblocaepetra.la
+ 
+ # List of all headers to install in $(includedir)
+ 
+@@ -166,7 +166,8 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-liblocaepetra_a_LIBADD = $(CXXREPOS) $(XTRALDADD)
++liblocaepetra_la_LIBADD = $(CXXREPOS) $(XTRALDADD)
++liblocaepetra_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # Files to be deleted by 'make maintainer-clean'
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/nox/src-loca/src-lapack/Makefile.am trilinos-9.0.2-libtool/packages/nox/src-loca/src-lapack/Makefile.am
+--- trilinos-9.0.2/packages/nox/src-loca/src-lapack/Makefile.am	2006-08-22 02:01:43.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/nox/src-loca/src-lapack/Makefile.am	2009-02-22 14:14:35.000000000 +0100
+@@ -58,7 +58,7 @@
+ # localapack library specifications
+ # ------------------------------------------------------------------------
+ 
+-liblocalapack_a_SOURCES = $(LOCA_LAPACK) $(LOCA_LAPACK_H)
++liblocalapack_la_SOURCES = $(LOCA_LAPACK) $(LOCA_LAPACK_H)
+ 
+ # ------------------------------------------------------------------------
+ # Includes for required and optional library dependencies
+@@ -81,7 +81,7 @@
+ 
+ # List of all libraries to install in $(libexecdir)
+ 
+-lib_LIBRARIES = liblocalapack.a
++lib_LTLIBRARIES = liblocalapack.la
+ 
+ # List of all headers to install in $(includedir)
+ 
+@@ -112,7 +112,8 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-liblocalapack_a_LIBADD = $(CXXREPOS) $(XTRALDADD)
++liblocalapack_la_LIBADD = $(CXXREPOS) $(XTRALDADD)
++liblocalapack_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # Files to be deleted by 'make maintainer-clean'
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/nox/src-loca/src-mf/Makefile.am trilinos-9.0.2-libtool/packages/nox/src-loca/src-mf/Makefile.am
+--- trilinos-9.0.2/packages/nox/src-loca/src-mf/Makefile.am	2006-08-22 02:01:43.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/nox/src-loca/src-mf/Makefile.am	2009-02-22 14:15:44.000000000 +0100
+@@ -68,7 +68,7 @@
+ # locamf library specifications
+ # ------------------------------------------------------------------------
+ 
+-liblocamf_a_SOURCES = $(LOCA_MF) $(LOCA_MF_H)
++liblocamf_la_SOURCES = $(LOCA_MF) $(LOCA_MF_H)
+ 
+ # ------------------------------------------------------------------------
+ # When to turn it on
+@@ -78,7 +78,7 @@
+ 
+ # List of all libraries to install in $(libexecdir)
+ 
+-lib_LIBRARIES = liblocamf.a
++lib_LTLIBRARIES = liblocamf.la
+ 
+ # List of all headers to install in $(includedir)
+ 
+@@ -109,7 +109,8 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-liblocamf_a_LIBADD = $(CXXREPOS) $(XTRALDADD)
++liblocamf_la_LIBADD = $(CXXREPOS) $(XTRALDADD)
++liblocamf_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # Files to be deleted by 'make maintainer-clean'
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/nox/src-loca/src-thyra/Makefile.am trilinos-9.0.2-libtool/packages/nox/src-loca/src-thyra/Makefile.am
+--- trilinos-9.0.2/packages/nox/src-loca/src-thyra/Makefile.am	2007-07-28 01:10:24.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/nox/src-loca/src-thyra/Makefile.am	2009-02-22 14:17:11.000000000 +0100
+@@ -58,7 +58,7 @@
+ # locathyra library specifications
+ # ------------------------------------------------------------------------
+ 
+-liblocathyra_a_SOURCES = $(THYRA) $(THYRA_H)
++liblocathyra_la_SOURCES = $(THYRA) $(THYRA_H)
+ 
+ # ------------------------------------------------------------------------
+ # Includes for required and optional library dependencies
+@@ -81,7 +81,7 @@
+ 
+ # List of all libraries to install in $(libexecdir)
+ 
+-lib_LIBRARIES = liblocathyra.a
++lib_LTLIBRARIES = liblocathyra.la
+ 
+ # List of all headers to install in $(includedir)
+ 
+@@ -112,7 +112,8 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-liblocathyra_a_LIBADD = $(CXXREPOS) $(XTRALDADD)
++liblocathyra_la_LIBADD = $(CXXREPOS) $(XTRALDADD)
++liblocathyra_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # Files to be deleted by 'make maintainer-clean'
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/nox/src-petsc/Makefile.am trilinos-9.0.2-libtool/packages/nox/src-petsc/Makefile.am
+--- trilinos-9.0.2/packages/nox/src-petsc/Makefile.am	2006-08-22 02:01:48.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/nox/src-petsc/Makefile.am	2009-02-22 14:17:46.000000000 +0100
+@@ -64,7 +64,7 @@
+ # Noxpetsc library specifications
+ # ------------------------------------------------------------------------
+ 
+-libnoxpetsc_a_SOURCES = $(PETSC) $(PETSC_H)
++libnoxpetsc_la_SOURCES = $(PETSC) $(PETSC_H)
+ 
+ # ------------------------------------------------------------------------
+ # Includes for required and optional library dependencies
+@@ -89,7 +89,7 @@
+ 
+ # List of all libraries to install in $(libexecdir)
+ 
+-lib_LIBRARIES = libnoxpetsc.a
++lib_LTLIBRARIES = libnoxpetsc.la
+ 
+ # List of all headers to install in $(includedir)
+ 
+@@ -120,7 +120,8 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libnoxpetsc_a_LIBADD = $(CXXREPOS)
++libnoxpetsc_la_LIBADD = $(CXXREPOS)
++libnoxpetsc_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # Files to be deleted by 'make maintainer-clean'
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/nox/test/epetra/DS6.5.1/Makefile.am trilinos-9.0.2-libtool/packages/nox/test/epetra/DS6.5.1/Makefile.am
+--- trilinos-9.0.2/packages/nox/test/epetra/DS6.5.1/Makefile.am	2006-08-22 02:01:52.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/nox/test/epetra/DS6.5.1/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -57,8 +57,8 @@
+                   $(srcdir)/Problem_Interface.H
+ 
+ DS6_5_1_DEPENDENCIES = \
+-                       $(top_builddir)/src/libnox.a \
+-                       $(top_builddir)/src-epetra/libnoxepetra.a
++                       $(top_builddir)/src/libnox.la \
++                       $(top_builddir)/src-epetra/libnoxepetra.la
+ 
+ DS6_5_1_LDADD = $(TEST_LIBS)
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/nox/test/epetra/LOCA_TestProblems/Makefile.am trilinos-9.0.2-libtool/packages/nox/test/epetra/LOCA_TestProblems/Makefile.am
+--- trilinos-9.0.2/packages/nox/test/epetra/LOCA_TestProblems/Makefile.am	2007-07-24 19:24:05.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/nox/test/epetra/LOCA_TestProblems/Makefile.am	2009-02-22 14:18:28.000000000 +0100
+@@ -119,7 +119,8 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-liblocatestproblems_a_LIBADD = $(CXXREPOS) $(XTRALDADD)
++liblocatestproblems_la_LIBADD = $(CXXREPOS) $(XTRALDADD)
++liblocatestproblems_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # Files to be deleted by 'make maintainer-clean'
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/nox/test/epetra/NOX_NewTest/Makefile.am trilinos-9.0.2-libtool/packages/nox/test/epetra/NOX_NewTest/Makefile.am
+--- trilinos-9.0.2/packages/nox/test/epetra/NOX_NewTest/Makefile.am	2006-08-22 02:02:05.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/nox/test/epetra/NOX_NewTest/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -51,8 +51,8 @@
+ NOX_NewTest_SOURCES = $(srcdir)/test.C
+ 
+ NOX_NewTest_DEPENDENCIES = \
+-                         $(top_builddir)/src/libnox.a \
+-                         $(top_builddir)/src-epetra/libnoxepetra.a
++                         $(top_builddir)/src/libnox.la \
++                         $(top_builddir)/src-epetra/libnoxepetra.la
+ 
+ #Unsure why this test need to link to the BLAS on an IBM.
+ NOX_NewTest_LDADD = $(TEST_LIBS)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/nox/test/lapack/LOCA_TestProblems/Makefile.am trilinos-9.0.2-libtool/packages/nox/test/lapack/LOCA_TestProblems/Makefile.am
+--- trilinos-9.0.2/packages/nox/test/lapack/LOCA_TestProblems/Makefile.am	2006-08-22 02:02:16.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/nox/test/lapack/LOCA_TestProblems/Makefile.am	2009-02-22 14:19:25.000000000 +0100
+@@ -98,7 +98,8 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-liblocatestproblems_a_LIBADD = $(CXXREPOS) $(XTRALDADD)
++liblocatestproblems_la_LIBADD = $(CXXREPOS) $(XTRALDADD)
++liblocatestproblems_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # Files to be deleted by 'make maintainer-clean'
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/nox/test/lapack/NOX/Makefile.am trilinos-9.0.2-libtool/packages/nox/test/lapack/NOX/Makefile.am
+--- trilinos-9.0.2/packages/nox/test/lapack/NOX/Makefile.am	2006-08-22 02:02:19.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/nox/test/lapack/NOX/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -52,9 +52,9 @@
+ rosenbrock_SOURCES = \
+ 			$(srcdir)/Rosenbrock.C 
+ 
+-rosenbrock_DEPENDENCIES = $(top_builddir)/src/libnox.a \
+-			$(top_builddir)/src-lapack/libnoxlapack.a \
+-			$(top_builddir)/test/utils/libnoxtestutils.a
++rosenbrock_DEPENDENCIES = $(top_builddir)/src/libnox.la \
++			$(top_builddir)/src-lapack/libnoxlapack.la \
++			$(top_builddir)/test/utils/libnoxtestutils.la
+ 
+ rosenbrock_LDADD = $(TEST_LIBS)
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/nox/test/lapack/NOX_Group/Makefile.am trilinos-9.0.2-libtool/packages/nox/test/lapack/NOX_Group/Makefile.am
+--- trilinos-9.0.2/packages/nox/test/lapack/NOX_Group/Makefile.am	2006-08-22 02:02:19.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/nox/test/lapack/NOX_Group/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -51,7 +51,7 @@
+ 
+ NOX_Group_SOURCES = $(srcdir)/test.C
+ 
+-NOX_Group_DEPENDENCIES = $(top_builddir)/src/libnox.a \
+-                         $(top_builddir)/src-lapack/libnoxlapack.a
++NOX_Group_DEPENDENCIES = $(top_builddir)/src/libnox.la \
++                         $(top_builddir)/src-lapack/libnoxlapack.la
+ 
+ NOX_Group_LDADD = $(TEST_LIBS)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/nox/test/lapack/NOX_NewTest/Makefile.am trilinos-9.0.2-libtool/packages/nox/test/lapack/NOX_NewTest/Makefile.am
+--- trilinos-9.0.2/packages/nox/test/lapack/NOX_NewTest/Makefile.am	2006-08-22 02:02:22.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/nox/test/lapack/NOX_NewTest/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -51,7 +51,7 @@
+ 
+ NOX_NewTest_SOURCES = $(srcdir)/test.C
+ 
+-NOX_NewTest_DEPENDENCIES = $(top_builddir)/src/libnox.a \
+-                           $(top_builddir)/src-lapack/libnoxlapack.a
++NOX_NewTest_DEPENDENCIES = $(top_builddir)/src/libnox.la \
++                           $(top_builddir)/src-lapack/libnoxlapack.la
+ 
+ NOX_NewTest_LDADD = $(TEST_LIBS)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/nox/test/utils/Makefile.am trilinos-9.0.2-libtool/packages/nox/test/utils/Makefile.am
+--- trilinos-9.0.2/packages/nox/test/utils/Makefile.am	2006-09-12 19:18:58.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/nox/test/utils/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -112,7 +112,8 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libnoxtestutils_a_LIBADD = $(CXXREPOS) $(XTRALDADD)
++libnoxtestutils_la_LIBADD = $(CXXREPOS) $(XTRALDADD)
++libnoxtestutils_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # Files to be deleted by 'make maintainer-clean'
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/pamgen/configure.ac trilinos-9.0.2-libtool/packages/pamgen/configure.ac
+--- trilinos-9.0.2/packages/pamgen/configure.ac	2008-07-28 17:55:36.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/pamgen/configure.ac	2009-02-19 22:28:27.000000000 +0100
+@@ -125,7 +125,7 @@
+ 
+ AC_PROG_CC(cc gcc)
+ AC_PROG_CXX(CC g++ c++ cxx)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for extra flags
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/pamgen/src/Makefile.am trilinos-9.0.2-libtool/packages/pamgen/src/Makefile.am
+--- trilinos-9.0.2/packages/pamgen/src/Makefile.am	2008-10-15 17:15:47.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/pamgen/src/Makefile.am	2009-02-22 14:20:00.000000000 +0100
+@@ -221,7 +221,7 @@
+ # Pamgen library specifications
+ # ------------------------------------------------------------------------
+ #np# replace new_package with the name of the package being autotool'ed here
+-PAMGEN_LIB = libpamgen.a
++PAMGEN_LIB = libpamgen.la
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+ PAMGEN_H = \
+@@ -237,7 +237,7 @@
+ 	$(NEWP_SWAHILI_H)
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-libpamgen_a_SOURCES = \
++libpamgen_la_SOURCES = \
+ 	$(CORE) \
+ 	$(PARSER) \
+ 	$(ASRC) \
+@@ -252,7 +252,7 @@
+ 	$(NEWP_SWAHILI)
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-EXTRA_libpamgen_a_SOURCES = \
++EXTRA_libpamgen_la_SOURCES = \
+ 	$(EXTRA_MPI) \
+ 	$(EXTRA_MPI_H) \
+ 	$(EXTRA_NEWP_SWAHILI) \
+@@ -285,14 +285,15 @@
+ # ------------------------------------------------------------------------
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-libpamgen_a_LIBADD = $(XTRALDADD)
++libpamgen_la_LIBADD = $(XTRALDADD)
++libpamgen_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-lib_LIBRARIES = $(PAMGEN_LIB)
++lib_LTLIBRARIES = $(PAMGEN_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/phalanx/configure.ac trilinos-9.0.2-libtool/packages/phalanx/configure.ac
+--- trilinos-9.0.2/packages/phalanx/configure.ac	2008-09-19 01:10:52.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/phalanx/configure.ac	2009-02-19 22:28:35.000000000 +0100
+@@ -129,7 +129,7 @@
+ AC_PROG_CC(cc gcc)
+ AC_PROG_CXX(CC g++ c++ cxx)
+ ##AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for extra flags
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/phalanx/src/Makefile.am trilinos-9.0.2-libtool/packages/phalanx/src/Makefile.am
+--- trilinos-9.0.2/packages/phalanx/src/Makefile.am	2008-10-15 17:15:51.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/phalanx/src/Makefile.am	2009-02-22 14:20:46.000000000 +0100
+@@ -123,13 +123,13 @@
+ # Phalanx library specifications
+ # ------------------------------------------------------------------------
+ #np# replace new_package with the name of the package being autotool'ed here
+-PHALANX_LIB = libphalanx.a
++PHALANX_LIB = libphalanx.la
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-libphalanx_a_SOURCES = $(PHALANX_CPP)
++libphalanx_la_SOURCES = $(PHALANX_CPP)
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-EXTRA_libphalanx_a_SOURCES =
++EXTRA_libphalanx_la_SOURCES =
+ 
+ #We need the following to support separate build directories
+ #AM_CPPFLAGS=-I$(builddir)/src
+@@ -158,14 +158,15 @@
+ # ------------------------------------------------------------------------
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-libphalanx_a_LIBADD = $(XTRALDADD)
++libphalanx_la_LIBADD = $(XTRALDADD)
++libphalanx_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-lib_LIBRARIES = libphalanx.a
++lib_LTLIBRARIES = libphalanx.la
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/phdmesh/configure.ac trilinos-9.0.2-libtool/packages/phdmesh/configure.ac
+--- trilinos-9.0.2/packages/phdmesh/configure.ac	2008-09-15 22:58:19.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/phdmesh/configure.ac	2009-02-19 22:28:43.000000000 +0100
+@@ -110,7 +110,7 @@
+ 
+ AC_PROG_CC(cc gcc)
+ AC_PROG_CXX(CC g++ c++ cxx)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for extra flags
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/phdmesh/src/Makefile.am trilinos-9.0.2-libtool/packages/phdmesh/src/Makefile.am
+--- trilinos-9.0.2/packages/phdmesh/src/Makefile.am	2008-10-15 17:15:52.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/phdmesh/src/Makefile.am	2009-02-22 14:22:05.000000000 +0100
+@@ -175,8 +175,8 @@
+ # ------------------------------------------------------------------------
+ # New_Package library specifications
+ # ------------------------------------------------------------------------
+-PHDMESH_LIB = libphdelement_mesh.a libphdmesh_util.a libphdmesh_mesh.a \
+-	libphdmesh_meshio.a libphdmesh_txblas.a
++PHDMESH_LIB = libphdelement_mesh.la libphdmesh_util.la libphdmesh_mesh.la \
++	libphdmesh_meshio.la libphdmesh_txblas.la
+ 
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+@@ -187,15 +187,15 @@
+ 	$(MESHIO_H) \
+ 	$(TXBLAS_H)
+ 
+-libphdelement_mesh_a_SOURCES = $(ELEMENT)
++libphdelement_mesh_la_SOURCES = $(ELEMENT)
+ 
+-libphdmesh_util_a_SOURCES = $(UTIL)
++libphdmesh_util_la_SOURCES = $(UTIL)
+ 
+-libphdmesh_mesh_a_SOURCES = $(MESH)
++libphdmesh_mesh_la_SOURCES = $(MESH)
+ 
+-libphdmesh_meshio_a_SOURCES = $(MESHIO)
++libphdmesh_meshio_la_SOURCES = $(MESHIO)
+ 
+-libphdmesh_txblas_a_SOURCES = $(TXBLAS)
++libphdmesh_txblas_la_SOURCES = $(TXBLAS)
+ 
+ #We need the following to support separate build directories
+ #AM_CPPFLAGS=-I$(builddir)/src
+@@ -230,18 +230,23 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libphdelement_mesh_a_LIBADD = $(XTRALDADD)
+-libphdmesh_util_a_LIBADD = $(XTRALDADD)
+-libphdmesh_mesh_a_LIBADD = $(XTRALDADD)
+-libphdmesh_meshio_a_LIBADD = $(XTRALDADD)
+-libphdmesh_txblas_a_LIBADD = $(XTRALDADD)
++libphdelement_mesh_la_LIBADD = $(XTRALDADD)
++libphdmesh_util_la_LIBADD = $(XTRALDADD)
++libphdmesh_mesh_la_LIBADD = $(XTRALDADD)
++libphdmesh_meshio_la_LIBADD = $(XTRALDADD)
++libphdmesh_txblas_la_LIBADD = $(XTRALDADD)
++libphdelement_mesh_la_LDFLAGS = -release $(VERSION)
++libphdmesh_util_la_LDFLAGS = -release $(VERSION)
++libphdmesh_mesh_la_LDFLAGS = -release $(VERSION)
++libphdmesh_meshio_la_LDFLAGS = -release $(VERSION)
++libphdmesh_txblas_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-lib_LIBRARIES = $(PHDMESH_LIB)
++lib_LTLIBRARIES = $(PHDMESH_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/pliris/configure.ac trilinos-9.0.2-libtool/packages/pliris/configure.ac
+--- trilinos-9.0.2/packages/pliris/configure.ac	2008-01-04 20:18:10.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/pliris/configure.ac	2009-02-19 22:26:58.000000000 +0100
+@@ -112,7 +112,7 @@
+ AC_PROG_CC(cc gcc)
+ AC_PROG_CXX(CC g++ c++ cxx)
+ #AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for extra flags
+@@ -144,11 +144,13 @@
+ # Checks for header files - used in Epetra_ConfigDefs.h 
+ # ------------------------------------------------------------------------
+ 
++AC_LANG_PUSH(C++)
+ AC_CHECK_HEADERS([stdlib.h],,)
+ AC_CHECK_HEADERS([stdio.h],,)
+ AC_CHECK_HEADERS([math.h],,)
+ AC_CHECK_HEADERS([malloc.h],,)
+ AC_CHECK_HEADERS([string string.h], [break],)
++AC_LANG_POP(C++)
+ 
+ if test "X$ac_cv_header_string" != "Xyes" && test "X$ac_cv_header_string_h" != "Xyes"; then
+   AC_MSG_ERROR([[Cannot find string or string.h.  Pliris requires at least one or the other.]])
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/pliris/src/Makefile.am trilinos-9.0.2-libtool/packages/pliris/src/Makefile.am
+--- trilinos-9.0.2/packages/pliris/src/Makefile.am	2008-10-15 17:15:52.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/pliris/src/Makefile.am	2009-02-22 14:22:50.000000000 +0100
+@@ -197,7 +197,7 @@
+ 
+ #It would make more sense to say PLIRIS_LIBS here, but that name is
+ #reserved for the Makefile.export system.
+-PLIRIS_LIB = libdpliris.a libspliris.a libzpliris.a libcpliris.a
++PLIRIS_LIB = libdpliris.la libspliris.la libzpliris.la libcpliris.la
+ 
+ PLIRIS_H = \
+ 	$(CORE_H) \
+@@ -208,7 +208,7 @@
+ 	$(MPI_H) \
+         $(MPI_EPETRA_H)
+ 
+-libdpliris_a_SOURCES = \
++libdpliris_la_SOURCES = \
+ 	$(CORE) \
+ 	$(UTIL) \
+ 	$(SERIAL) \
+@@ -217,7 +217,7 @@
+ 	$(MPI) \
+         $(MPI_EPETRA)
+ 
+-libspliris_a_SOURCES = \
++libspliris_la_SOURCES = \
+         $(CORE) \
+         $(UTIL) \
+         $(SERIAL) \
+@@ -225,7 +225,7 @@
+         $(COMP) \
+         $(MPI)
+ 
+-libzpliris_a_SOURCES = \
++libzpliris_la_SOURCES = \
+         $(CORE) \
+         $(UTIL) \
+         $(SERIAL) \
+@@ -233,7 +233,7 @@
+         $(COMP) \
+         $(MPI)
+ 
+-libcpliris_a_SOURCES = \
++libcpliris_la_SOURCES = \
+         $(CORE) \
+         $(UTIL) \
+         $(SERIAL) \
+@@ -243,7 +243,7 @@
+ 
+ #We only need to list files under the "EXTRA" heading once to
+ #make sure the files are included in the distribution tarball.
+-EXTRA_libdpliris_a_SOURCES = \
++EXTRA_libdpliris_la_SOURCES = \
+ 	$(EXTRA_CORE) \
+ 	$(EXTRA_CORE_H) \
+ 	$(EXTRA_UTIL) \
+@@ -251,21 +251,21 @@
+ 	$(EXTRA_EPETRA_COMPAT) \
+ 	$(EXTRA_EPETRA_COMPAT_H)
+ 
+-#libdpliris_a_AM_CFLAGS =-DDREAL
+-libdpliris_a_CFLAGS =-DDREAL
+-libdpliris_a_CXXFLAGS =-DDREAL
+-
+-#libspliris_a_AM_CFLAGS =-DSREAL
+-libspliris_a_CFLAGS =-DSREAL
+-libspliris_a_CXXFLAGS =-DSREAL
+-
+-#libcpliris_a_AM_CFLAGS =-DSCPLX
+-libcpliris_a_CFLAGS =-DSCPLX
+-libcpliris_a_CXXFLAGS =-DSCPLX
+-
+-#libzpliris_a_AM_CFLAGS =-DZCPLX
+-libzpliris_a_CFLAGS =-DZCPLX
+-libzpliris_a_CXXFLAGS =-DZCPLX
++#libdpliris_la_AM_CFLAGS =-DDREAL
++libdpliris_la_CFLAGS =-DDREAL
++libdpliris_la_CXXFLAGS =-DDREAL
++
++#libspliris_la_AM_CFLAGS =-DSREAL
++libspliris_la_CFLAGS =-DSREAL
++libspliris_la_CXXFLAGS =-DSREAL
++
++#libcpliris_la_AM_CFLAGS =-DSCPLX
++libcpliris_la_CFLAGS =-DSCPLX
++libcpliris_la_CXXFLAGS =-DSCPLX
++
++#libzpliris_la_AM_CFLAGS =-DZCPLX
++libzpliris_la_CFLAGS =-DZCPLX
++libzpliris_la_CXXFLAGS =-DZCPLX
+ 
+ #We need the following to support separate build directories
+ #AM_CPPFLAGS=-I$(builddir)/src
+@@ -280,18 +280,18 @@
+ if USE_ALTERNATE_AR
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-libdpliris_a_AR = $(ALTERNATE_AR)
+-libspliris_a_AR = $(ALTERNATE_AR)
+-libcpliris_a_AR = $(ALTERNATE_AR)
+-libzpliris_a_AR = $(ALTERNATE_AR)
++libdpliris_la_AR = $(ALTERNATE_AR)
++libspliris_la_AR = $(ALTERNATE_AR)
++libcpliris_la_AR = $(ALTERNATE_AR)
++libzpliris_la_AR = $(ALTERNATE_AR)
+ 
+ else
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-libdpliris_a_AR = $(AR) cru
+-libspliris_a_AR = $(AR) cru
+-libcpliris_a_AR = $(AR) cru
+-libzpliris_a_AR = $(AR) cru
++libdpliris_la_AR = $(AR) cru
++libspliris_la_AR = $(AR) cru
++libcpliris_la_AR = $(AR) cru
++libzpliris_la_AR = $(AR) cru
+ 
+ endif
+ 
+@@ -301,17 +301,21 @@
+ # ------------------------------------------------------------------------
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-libdpliris_a_LIBADD = $(XTRALDADD)
+-libspliris_a_LIBADD = $(XTRALDADD)
+-libcpliris_a_LIBADD = $(XTRALDADD)
+-libzpliris_a_LIBADD = $(XTRALDADD)
++libdpliris_la_LIBADD = $(XTRALDADD)
++libspliris_la_LIBADD = $(XTRALDADD)
++libcpliris_la_LIBADD = $(XTRALDADD)
++libzpliris_la_LIBADD = $(XTRALDADD)
++libdpliris_la_LDFLAGS = -release $(VERSION)
++libspliris_la_LDFLAGS = -release $(VERSION)
++libcpliris_la_LDFLAGS = -release $(VERSION)
++libzpliris_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-lib_LIBRARIES = $(PLIRIS_LIB)
++lib_LTLIBRARIES = $(PLIRIS_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/rtop/configure.ac trilinos-9.0.2-libtool/packages/rtop/configure.ac
+--- trilinos-9.0.2/packages/rtop/configure.ac	2008-09-18 14:57:07.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/rtop/configure.ac	2009-02-19 22:23:18.000000000 +0100
+@@ -127,7 +127,7 @@
+ AC_PROG_CC(cc gcc)
+ AC_PROG_CXX(CC g++ c++ cxx)
+ #AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for extra flags
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/rtop/src/Makefile.am trilinos-9.0.2-libtool/packages/rtop/src/Makefile.am
+--- trilinos-9.0.2/packages/rtop/src/Makefile.am	2008-10-15 17:15:53.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/rtop/src/Makefile.am	2009-02-22 14:23:15.000000000 +0100
+@@ -142,7 +142,7 @@
+ # RTOp library specifications
+ # --------------------------------------------------------------------
+ 
+-RTOP_LIB = librtop.a
++RTOP_LIB = librtop.la
+ 
+ RTOP_H = \
+   $(srcdir)/RTOp_ConfigDefs.hpp $(srcdir)/RTOpPack_version.hpp \
+@@ -152,7 +152,7 @@
+   $(RTOP_OPS_LIB_H) \
+   $(RTOP_LAPACK_H)
+ 
+-librtop_a_SOURCES = \
++librtop_la_SOURCES = \
+   $(srcdir)/RTOpPack_version.cpp \
+   $(RTOP_INTERFACES) \
+   $(RTOP_SUPPORT_C) \
+@@ -188,13 +188,14 @@
+ # I have not been able to find any kind of "or" for Automake
+ # conditionals. JW
+ 
+- librtop_a_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD)
++ librtop_la_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD)
++ librtop_la_LDFLAGS = -release $(VERSION)
+ 
+ # --------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # --------------------------------------------------------------------
+ 
+-lib_LIBRARIES = $(RTOP_LIB)
++lib_LTLIBRARIES = $(RTOP_LIB)
+ 
+ # --------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/rythmos/configure.ac trilinos-9.0.2-libtool/packages/rythmos/configure.ac
+--- trilinos-9.0.2/packages/rythmos/configure.ac	2008-07-17 18:21:34.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/rythmos/configure.ac	2009-02-19 22:23:52.000000000 +0100
+@@ -111,7 +111,7 @@
+ AC_PROG_CC(cc gcc)
+ AC_PROG_CXX(CC g++ c++ cxx)
+ #AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for extra flags
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/rythmos/src/Makefile.am trilinos-9.0.2-libtool/packages/rythmos/src/Makefile.am
+--- trilinos-9.0.2/packages/rythmos/src/Makefile.am	2008-10-15 17:15:54.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/rythmos/src/Makefile.am	2009-02-22 14:23:35.000000000 +0100
+@@ -166,7 +166,7 @@
+ # Rythmos library specifications
+ # ------------------------------------------------------------------------
+ 
+-RYTHMOS_LIB = librythmos.a
++RYTHMOS_LIB = librythmos.la
+ 
+ RYTHMOS_H = \
+   $(CORE_H) \
+@@ -179,7 +179,7 @@
+   $(COMP_H) \
+   $(MPI_H)
+ 
+-librythmos_a_SOURCES = \
++librythmos_la_SOURCES = \
+   $(CORE) \
+   $(UTIL) \
+   $(UNIPROC) \
+@@ -188,7 +188,7 @@
+   $(COMP) \
+   $(MPI)
+ 
+-EXTRA_librythmos_a_SOURCES = \
++EXTRA_librythmos_la_SOURCES = \
+   $(EXTRA_MPI) \
+   $(EXTRA_MPI_H)
+ 
+@@ -216,13 +216,14 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-librythmos_a_LIBADD = $(XTRALDADD)
++librythmos_la_LIBADD = $(XTRALDADD)
++librythmos_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+-lib_LIBRARIES = $(RYTHMOS_LIB)
++lib_LTLIBRARIES = $(RYTHMOS_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/sacado/configure.ac trilinos-9.0.2-libtool/packages/sacado/configure.ac
+--- trilinos-9.0.2/packages/sacado/configure.ac	2008-09-17 18:46:14.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/sacado/configure.ac	2009-02-19 22:25:16.000000000 +0100
+@@ -103,7 +103,7 @@
+ AC_PROG_CC(cc gcc)
+ AC_PROG_CXX(CC g++ gcc c++ cxx)
+ #AC_PROG_F77(f77 g77 f90 xlf90)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ AC_PROG_AWK
+ 
+ # ------------------------------------------------------------------------
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/sacado/src/Makefile.am trilinos-9.0.2-libtool/packages/sacado/src/Makefile.am
+--- trilinos-9.0.2/packages/sacado/src/Makefile.am	2008-07-30 20:13:20.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/sacado/src/Makefile.am	2009-02-22 14:23:54.000000000 +0100
+@@ -236,13 +236,13 @@
+ # ------------------------------------------------------------------------
+ # Sacado library specifications
+ # ------------------------------------------------------------------------
+-SACADO_LIB = libsacado.a
++SACADO_LIB = libsacado.la
+ 
+-libsacado_a_SOURCES = $(SACADO) $(SACADO_H)
++libsacado_la_SOURCES = $(SACADO) $(SACADO_H)
+ 
+-libsacado_a_CXXFLAGS = $(SACADO_INCLUDES)
++libsacado_la_CXXFLAGS = $(SACADO_INCLUDES)
+ 
+-EXTRA_libsacado_a_SOURCES =
++EXTRA_libsacado_la_SOURCES =
+ 
+ #We need the following to support separate build directories
+ #AM_CPPFLAGS=-I$(builddir)/src
+@@ -269,13 +269,14 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libsacado_a_LIBADD = $(XTRALDADD)
++libsacado_la_LIBADD = $(XTRALDADD)
++libsacado_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+-lib_LIBRARIES = $(SACADO_LIB)
++lib_LTLIBRARIES = $(SACADO_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/stratimikos/configure.ac trilinos-9.0.2-libtool/packages/stratimikos/configure.ac
+--- trilinos-9.0.2/packages/stratimikos/configure.ac	2008-09-18 14:57:07.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/stratimikos/configure.ac	2009-02-19 22:23:41.000000000 +0100
+@@ -117,7 +117,7 @@
+ AC_PROG_CC(cc gcc)
+ AC_PROG_CXX(CC g++ c++ cxx)
+ #AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for extra flags
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/stratimikos/src/Makefile.am trilinos-9.0.2-libtool/packages/stratimikos/src/Makefile.am
+--- trilinos-9.0.2/packages/stratimikos/src/Makefile.am	2008-10-15 17:16:03.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/stratimikos/src/Makefile.am	2009-02-22 14:24:12.000000000 +0100
+@@ -71,13 +71,13 @@
+ # ------------------------------------------------------------------------
+ # Stratimikos library specifications
+ # ------------------------------------------------------------------------
+-STRATIMIKOS_LIB = libstratimikos.a
++STRATIMIKOS_LIB = libstratimikos.la
+ 
+ STRATIMIKOS_H = \
+ 	$(CORE_H)
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-libstratimikos_a_SOURCES = \
++libstratimikos_la_SOURCES = \
+ 	$(CORE)
+ 
+ # ------------------------------------------------------------------------
+@@ -103,13 +103,14 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libstratimikos_a_LIBADD = $(XTRALDADD)
++libstratimikos_la_LIBADD = $(XTRALDADD)
++libstratimikos_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+-lib_LIBRARIES = $(STRATIMIKOS_LIB)
++lib_LTLIBRARIES = $(STRATIMIKOS_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/Sundance/configure.ac trilinos-9.0.2-libtool/packages/Sundance/configure.ac
+--- trilinos-9.0.2/packages/Sundance/configure.ac	2008-08-20 19:38:44.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/Sundance/configure.ac	2009-02-19 22:28:53.000000000 +0100
+@@ -117,7 +117,7 @@
+ AC_PROG_CC(cc gcc)
+ AC_PROG_CXX(CC g++ gcc c++ cxx)
+ AC_PROG_F77(f77 g77 f90 xlf90)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ 
+ # ------------------------------------------------------------------------
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/Sundance/Makefile.am trilinos-9.0.2-libtool/packages/Sundance/Makefile.am
+--- trilinos-9.0.2/packages/Sundance/Makefile.am	2008-10-15 17:14:58.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/Sundance/Makefile.am	2009-02-20 23:37:48.000000000 +0100
+@@ -41,7 +41,7 @@
+ ## #######################################################################
+ ## Aclocal command (rarely used - don't worry about it)
+ ## #######################################################################
+-ACLOCAL	= aclocal -I config
++ACLOCAL_AMFLAGS	= -I config
+ 
+ #
+ #       I believe that by switching to AUX_DIR(../../config) one 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/teuchos/configure.ac trilinos-9.0.2-libtool/packages/teuchos/configure.ac
+--- trilinos-9.0.2/packages/teuchos/configure.ac	2008-09-17 23:50:04.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/teuchos/configure.ac	2009-02-19 22:29:12.000000000 +0100
+@@ -131,7 +131,7 @@
+ if test "X$ac_cv_use_fortran" != "Xno"; then
+ AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+ fi
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Check for perl
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/teuchos/example/BLAS/Makefile.am trilinos-9.0.2-libtool/packages/teuchos/example/BLAS/Makefile.am
+--- trilinos-9.0.2/packages/teuchos/example/BLAS/Makefile.am	2004-04-24 00:35:09.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/teuchos/example/BLAS/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -46,7 +46,7 @@
+ 
+ #np# One LDADD primary can be defined for each exe.  Include any LDFLAGS necessary for 
+ #np# building the exe.
+-BLAS_example_LDADD = $(top_builddir)/src/libteuchos.a \
++BLAS_example_LDADD = $(top_builddir)/src/libteuchos.la \
+ 	$(LIBS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
+ 
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/teuchos/example/CommandLineProcessor/Makefile.am trilinos-9.0.2-libtool/packages/teuchos/example/CommandLineProcessor/Makefile.am
+--- trilinos-9.0.2/packages/teuchos/example/CommandLineProcessor/Makefile.am	2005-05-01 00:18:19.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/teuchos/example/CommandLineProcessor/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -34,7 +34,7 @@
+ 
+ CLP_example_SOURCES = $(srcdir)/cxx_main.cpp
+ 
+-CLP_example_DEPENDENCIES = $(top_builddir)/src/libteuchos.a
++CLP_example_DEPENDENCIES = $(top_builddir)/src/libteuchos.la
+ 
+ AM_CPPFLAGS = $(TEUCHOS_INCLUDES)
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/teuchos/example/DenseMatrix/Makefile.am trilinos-9.0.2-libtool/packages/teuchos/example/DenseMatrix/Makefile.am
+--- trilinos-9.0.2/packages/teuchos/example/DenseMatrix/Makefile.am	2008-03-25 18:49:05.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/teuchos/example/DenseMatrix/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -46,7 +46,7 @@
+ 
+ #np# One LDADD primary can be defined for each exe.  Include any LDFLAGS necessary for 
+ #np# building the exe.
+-DenseMatrix_example_LDADD = $(top_builddir)/src/libteuchos.a \
++DenseMatrix_example_LDADD = $(top_builddir)/src/libteuchos.la \
+ 	$(LIBS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
+ 
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/teuchos/example/hilbert/Makefile.am trilinos-9.0.2-libtool/packages/teuchos/example/hilbert/Makefile.am
+--- trilinos-9.0.2/packages/teuchos/example/hilbert/Makefile.am	2004-03-26 19:48:26.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/teuchos/example/hilbert/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -46,7 +46,7 @@
+ 
+ #np# One LDADD primary can be defined for each exe.  Include any LDFLAGS necessary for 
+ #np# building the exe.
+-hilbert_LDADD = $(top_builddir)/src/libteuchos.a \
++hilbert_LDADD = $(top_builddir)/src/libteuchos.la \
+ 	$(LIBS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
+ 
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/teuchos/example/LAPACK/Makefile.am trilinos-9.0.2-libtool/packages/teuchos/example/LAPACK/Makefile.am
+--- trilinos-9.0.2/packages/teuchos/example/LAPACK/Makefile.am	2004-04-24 00:35:11.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/teuchos/example/LAPACK/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -46,7 +46,7 @@
+ 
+ #np# One LDADD primary can be defined for each exe.  Include any LDFLAGS necessary for 
+ #np# building the exe.
+-LAPACK_example_LDADD = $(top_builddir)/src/libteuchos.a \
++LAPACK_example_LDADD = $(top_builddir)/src/libteuchos.la \
+ 	$(LIBS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
+ 
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/teuchos/example/ParameterList/Makefile.am trilinos-9.0.2-libtool/packages/teuchos/example/ParameterList/Makefile.am
+--- trilinos-9.0.2/packages/teuchos/example/ParameterList/Makefile.am	2006-11-09 15:52:11.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/teuchos/example/ParameterList/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -46,7 +46,7 @@
+ 
+ #np# One LDADD primary can be defined for each exe.  Include any LDFLAGS necessary for 
+ #np# building the exe.
+-ParameterList_example_LDADD = $(top_builddir)/src/libteuchos.a \
++ParameterList_example_LDADD = $(top_builddir)/src/libteuchos.la \
+ 	$(LIBS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
+ 
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/teuchos/example/RefCountPtr/Makefile.am trilinos-9.0.2-libtool/packages/teuchos/example/RefCountPtr/Makefile.am
+--- trilinos-9.0.2/packages/teuchos/example/RefCountPtr/Makefile.am	2005-05-01 00:18:22.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/teuchos/example/RefCountPtr/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -34,7 +34,7 @@
+ 
+ RefCountPtr_example_SOURCES = $(srcdir)/cxx_main.cpp
+ 
+-RefCountPtr_example_DEPENDENCIES = $(top_builddir)/src/libteuchos.a
++RefCountPtr_example_DEPENDENCIES = $(top_builddir)/src/libteuchos.la
+ 
+ AM_CPPFLAGS = $(TEUCHOS_INCLUDES)
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/teuchos/example/TimeMonitor/Makefile.am trilinos-9.0.2-libtool/packages/teuchos/example/TimeMonitor/Makefile.am
+--- trilinos-9.0.2/packages/teuchos/example/TimeMonitor/Makefile.am	2005-07-08 23:00:53.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/teuchos/example/TimeMonitor/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -38,7 +38,7 @@
+ 
+ #np# One DEPENDENCIES primary is needed for each exe.  List any libraries that the 
+ #np# exe depends on.  (This primary is not absolutely essential.)
+-TimeMonitor_example_DEPENDENCIES = $(top_builddir)/src/libteuchos.a
++TimeMonitor_example_DEPENDENCIES = $(top_builddir)/src/libteuchos.la
+ 
+ #np# One CXXFLAGS primary can be defined for each exe.  Include any -I's necessary for 
+ #np# building the exe.
+@@ -46,7 +46,7 @@
+ 
+ #np# One LDADD primary can be defined for each exe.  Include any LDFLAGS necessary for 
+ #np# building the exe.
+-TimeMonitor_example_LDADD = $(top_builddir)/src/libteuchos.a \
++TimeMonitor_example_LDADD = $(top_builddir)/src/libteuchos.la \
+ 	$(LIBS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
+ 
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/teuchos/src/Makefile.am trilinos-9.0.2-libtool/packages/teuchos/src/Makefile.am
+--- trilinos-9.0.2/packages/teuchos/src/Makefile.am	2008-07-24 05:30:30.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/teuchos/src/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -333,7 +333,7 @@
+ # Teuchos library specifications
+ # ------------------------------------------------------------------------
+ # replace teuchos with the name of the package being autotool'ed here
+-TEUCHOS_LIB = libteuchos.a
++TEUCHOS_LIB = libteuchos.la
+ 
+ # replace new_package with the name of the package being autotool'ed here
+ TEUCHOS_H = \
+@@ -350,7 +350,7 @@
+ 
+ 
+ # replace new_package with the name of the package being autotool'ed here
+-libteuchos_a_SOURCES = \
++libteuchos_la_SOURCES = \
+ 	$(CORE) \
+ 	$(UTIL) \
+ 	$(UNIPROC) \
+@@ -361,7 +361,7 @@
+ 	$(EXTENDED)
+ 
+ # replace new_package with the name of the package being autotool'ed here
+-EXTRA_libteuchos_a_SOURCES = \
++EXTRA_libteuchos_la_SOURCES = \
+ 	$(EXTRA_MPI) \
+ 	$(EXTRA_MPI_H) \
+ 	$(EXTRA_ARPREC) \
+@@ -389,13 +389,14 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libteuchos_a_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD) 
++libteuchos_la_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD) 
++libteuchos_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+-lib_LIBRARIES = $(TEUCHOS_LIB)
++lib_LTLIBRARIES = $(TEUCHOS_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/teuchos/test/Containers/Makefile.am trilinos-9.0.2-libtool/packages/teuchos/test/Containers/Makefile.am
+--- trilinos-9.0.2/packages/teuchos/test/Containers/Makefile.am	2004-02-07 05:59:10.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/teuchos/test/Containers/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -38,7 +38,7 @@
+ 
+ #np# One DEPENDENCIES primary is needed for each exe.  List any libraries that the 
+ #np# exe depends on.  (This primary is not absolutely essential.)
+-Containers_test_DEPENDENCIES = $(top_builddir)/src/libteuchos.a
++Containers_test_DEPENDENCIES = $(top_builddir)/src/libteuchos.la
+ 
+ #np# One CXXFLAGS primary can be defined for each exe.  Include any -I's necessary for 
+ #np# building the exe.
+@@ -46,6 +46,6 @@
+ 
+ #np# One LDADD primary can be defined for each exe.  Include any LDFLAGS necessary for 
+ #np# building the exe.
+-Containers_test_LDADD = $(top_builddir)/src/libteuchos.a $(Containers_LIBS) $(LIBS) $(FLIBS)
++Containers_test_LDADD = $(top_builddir)/src/libteuchos.la $(Containers_LIBS) $(LIBS) $(FLIBS)
+ 
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/teuchos/test/DenseMatrix/Makefile.am trilinos-9.0.2-libtool/packages/teuchos/test/DenseMatrix/Makefile.am
+--- trilinos-9.0.2/packages/teuchos/test/DenseMatrix/Makefile.am	2008-03-31 22:04:48.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/teuchos/test/DenseMatrix/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -38,7 +38,7 @@
+ 
+ #np# One DEPENDENCIES primary is needed for each exe.  List any libraries that the 
+ #np# exe depends on.  (This primary is not absolutely essential.)
+-DenseMatrix_test_DEPENDENCIES = $(top_builddir)/src/libteuchos.a
++DenseMatrix_test_DEPENDENCIES = $(top_builddir)/src/libteuchos.la
+ 
+ #np# One CXXFLAGS primary can be defined for each exe.  Include any -I's necessary for 
+ #np# building the exe.
+@@ -47,7 +47,7 @@
+ #np# One LDADD primary can be defined for each exe.  Include any LDFLAGS necessary for 
+ #np# building the exe.
+ DenseMatrix_test_LDADD = \
+-	$(top_builddir)/src/libteuchos.a \
++	$(top_builddir)/src/libteuchos.la \
+ 	$(LIBS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
+ 
+ #np# One SOURCES primary is needed for EACH exe.  (Notice for all of the following 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/teuchos/test/dyn_cast/Makefile.am trilinos-9.0.2-libtool/packages/teuchos/test/dyn_cast/Makefile.am
+--- trilinos-9.0.2/packages/teuchos/test/dyn_cast/Makefile.am	2005-05-01 00:18:31.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/teuchos/test/dyn_cast/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -34,7 +34,7 @@
+ 
+ dyn_cast_test_SOURCES = $(srcdir)/cxx_main.cpp
+ 
+-dyn_cast_test_DEPENDENCIES = $(top_builddir)/src/libteuchos.a
++dyn_cast_test_DEPENDENCIES = $(top_builddir)/src/libteuchos.la
+ 
+ AM_CPPFLAGS = $(TEUCHOS_INCLUDES)
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/teuchos/test/LAPACK/Makefile.am trilinos-9.0.2-libtool/packages/teuchos/test/LAPACK/Makefile.am
+--- trilinos-9.0.2/packages/teuchos/test/LAPACK/Makefile.am	2005-05-01 00:18:26.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/teuchos/test/LAPACK/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -34,7 +34,7 @@
+ 
+ LAPACK_test_SOURCES = $(srcdir)/cxx_main.cpp
+ 
+-LAPACK_test_DEPENDENCIES = $(top_builddir)/src/libteuchos.a
++LAPACK_test_DEPENDENCIES = $(top_builddir)/src/libteuchos.la
+ 
+ AM_CPPFLAGS = $(TEUCHOS_INCLUDES)
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/teuchos/test/ParameterList/Makefile.am trilinos-9.0.2-libtool/packages/teuchos/test/ParameterList/Makefile.am
+--- trilinos-9.0.2/packages/teuchos/test/ParameterList/Makefile.am	2006-11-09 15:52:12.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/teuchos/test/ParameterList/Makefile.am	2009-02-19 22:18:58.000000000 +0100
+@@ -36,7 +36,7 @@
+ 
+ ParameterList_test_CXXFLAGS = -I$(top_srcdir)/src
+ 
+-ParameterList_test_LDADD = $(top_builddir)/src/libteuchos.a \
++ParameterList_test_LDADD = $(top_builddir)/src/libteuchos.la \
+ 	$(LIBS) $(BLAS_LIBS) $(FLIBS)
+ 
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/teuchos/test/Time/Makefile.am trilinos-9.0.2-libtool/packages/teuchos/test/Time/Makefile.am
+--- trilinos-9.0.2/packages/teuchos/test/Time/Makefile.am	2004-03-10 23:56:36.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/teuchos/test/Time/Makefile.am	2009-02-19 22:18:59.000000000 +0100
+@@ -32,10 +32,10 @@
+ 
+ Time_test_SOURCES = $(srcdir)/cxx_main.cpp
+ 
+-Time_test_DEPENDENCIES = $(top_builddir)/src/libteuchos.a
++Time_test_DEPENDENCIES = $(top_builddir)/src/libteuchos.la
+ 
+ Time_test_CXXFLAGS = -I$(top_srcdir)/src
+ 
+-Time_test_LDADD = $(top_builddir)/src/libteuchos.a \
++Time_test_LDADD = $(top_builddir)/src/libteuchos.la \
+ 	$(Time_LIBS) $(LIBS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/teuchos/test/Workspace/Makefile.am trilinos-9.0.2-libtool/packages/teuchos/test/Workspace/Makefile.am
+--- trilinos-9.0.2/packages/teuchos/test/Workspace/Makefile.am	2005-05-01 00:18:29.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/teuchos/test/Workspace/Makefile.am	2009-02-19 22:18:59.000000000 +0100
+@@ -34,7 +34,7 @@
+ 
+ workspace_test_SOURCES = $(srcdir)/cxx_main.cpp
+ 
+-workspace_test_DEPENDENCIES = $(top_builddir)/src/libteuchos.a
++workspace_test_DEPENDENCIES = $(top_builddir)/src/libteuchos.la
+ 
+ AM_CPPFLAGS = $(TEUCHOS_INCLUDES)
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/teuchos/test/XML/Makefile.am trilinos-9.0.2-libtool/packages/teuchos/test/XML/Makefile.am
+--- trilinos-9.0.2/packages/teuchos/test/XML/Makefile.am	2005-01-16 20:51:08.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/teuchos/test/XML/Makefile.am	2009-02-19 22:18:59.000000000 +0100
+@@ -32,9 +32,9 @@
+ 
+ XML_test_SOURCES = $(srcdir)/cxx_main.cpp
+ 
+-XML_test_DEPENDENCIES = $(top_builddir)/src/libteuchos.a
++XML_test_DEPENDENCIES = $(top_builddir)/src/libteuchos.la
+ 
+ XML_test_CXXFLAGS = -I$(top_srcdir)/src
+ 
+-XML_test_LDADD = $(top_builddir)/src/libteuchos.a $(LIBS) $(FLIBS)
++XML_test_LDADD = $(top_builddir)/src/libteuchos.la $(LIBS) $(FLIBS)
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ThreadPool/configure.ac trilinos-9.0.2-libtool/packages/ThreadPool/configure.ac
+--- trilinos-9.0.2/packages/ThreadPool/configure.ac	2008-04-23 22:34:15.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ThreadPool/configure.ac	2009-02-19 22:29:02.000000000 +0100
+@@ -116,7 +116,7 @@
+ AC_PROG_CC(cc gcc)
+ AC_PROG_CXX(CC g++ c++ cxx)
+ #AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # Check if --with-flags present, prepend any specs to FLAGS
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/ThreadPool/src/Makefile.am trilinos-9.0.2-libtool/packages/ThreadPool/src/Makefile.am
+--- trilinos-9.0.2/packages/ThreadPool/src/Makefile.am	2008-10-15 17:15:03.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/ThreadPool/src/Makefile.am	2009-02-22 14:25:01.000000000 +0100
+@@ -58,19 +58,19 @@
+ # ThreadPool library specifications
+ # ------------------------------------------------------------------------
+ #np# replace new_package with the name of the package being autotool'ed here
+-THREADPOOL_LIB = libtpi.a
++THREADPOOL_LIB = libtpi.la
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+ THREADPOOL_H = \
+ 	$(CORE_H)
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-libtpi_a_SOURCES = \
++libtpi_la_SOURCES = \
+ 	$(CORE) \
+ 	$(UTIL)
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-#EXTRA_libtpi_a_SOURCES =
++#EXTRA_libtpi_la_SOURCES =
+ 
+ include $(top_builddir)/Makefile.export.threadpool
+ 
+@@ -100,13 +100,14 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libtpi_a_LIBADD = $(XTRALDADD)
++libtpi_la_LIBADD = $(XTRALDADD)
++libtpi_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+-lib_LIBRARIES = $(THREADPOOL_LIB)
++lib_LTLIBRARIES = $(THREADPOOL_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/thyra/configure.ac trilinos-9.0.2-libtool/packages/thyra/configure.ac
+--- trilinos-9.0.2/packages/thyra/configure.ac	2008-09-18 14:57:08.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/thyra/configure.ac	2009-02-19 22:27:32.000000000 +0100
+@@ -125,7 +125,7 @@
+ AC_PROG_CC(cc gcc)
+ AC_PROG_CXX(CC g++ c++ cxx)
+ #AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for extra flags
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/thyra/src/Makefile.am trilinos-9.0.2-libtool/packages/thyra/src/Makefile.am
+--- trilinos-9.0.2/packages/thyra/src/Makefile.am	2008-10-15 17:16:05.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/thyra/src/Makefile.am	2009-02-19 22:18:59.000000000 +0100
+@@ -322,7 +322,7 @@
+ # Thyra library specifications
+ # --------------------------------------------------------------------
+ 
+-THYRA_LIB = libthyra.a
++THYRA_LIB = libthyra.la
+ 
+ THYRA_H = \
+   $(srcdir)/Thyra_ConfigDefs.hpp $(srcdir)/Thyra_Version.hpp \
+@@ -340,7 +340,7 @@
+   $(SUPPORT_NONLINEAR_SOLVERS_CLIENT_SUPPORT_H)\
+   $(OPERATOR_VECTOR_EXAMPLE_H)
+ 
+-libthyra_a_SOURCES = $(srcdir)/Thyra_Version.cpp \
++libthyra_la_SOURCES = $(srcdir)/Thyra_Version.cpp \
+   $(SUPPORT_OPERATOR_VECTOR_CLIENT_SUPPORT) \
+   $(SUPPORT_OPERATOR_VECTOR_ADAPTER_SUPPORT)
+ 
+@@ -356,11 +356,11 @@
+ 
+ if USE_ALTERNATE_AR
+ 
+-libthyra_a_AR = $(ALTERNATE_AR)
++libthyra_la_AR = $(ALTERNATE_AR)
+ 
+ else
+ 
+-libthyra_a_AR = $(AR) cru
++libthyra_la_AR = $(AR) cru
+ 
+ endif
+ 
+@@ -372,13 +372,14 @@
+ # I have not been able to find any kind of "or" for Automake
+ # conditionals. JW
+ 
+- libthyra_a_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD)
++ libthyra_la_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD)
++ libthyra_la_LDFLAGS = -release $(VERSION)
+ 
+ # --------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # --------------------------------------------------------------------
+ 
+-lib_LIBRARIES = $(THYRA_LIB)
++lib_LTLIBRARIES = $(THYRA_LIB)
+ 
+ # --------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/trilinoscouplings/configure.ac trilinos-9.0.2-libtool/packages/trilinoscouplings/configure.ac
+--- trilinos-9.0.2/packages/trilinoscouplings/configure.ac	2008-02-12 17:13:22.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/trilinoscouplings/configure.ac	2009-02-19 22:22:52.000000000 +0100
+@@ -89,7 +89,7 @@
+ AC_PROG_CC(cc gcc)
+ AC_PROG_CXX(CC g++ c++ cxx)
+ #AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for extra flags
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/trilinoscouplings/src/Makefile.am trilinos-9.0.2-libtool/packages/trilinoscouplings/src/Makefile.am
+--- trilinos-9.0.2/packages/trilinoscouplings/src/Makefile.am	2008-10-15 17:16:21.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/trilinoscouplings/src/Makefile.am	2009-02-22 14:25:37.000000000 +0100
+@@ -200,7 +200,7 @@
+ # TrilinosCouplings library specifications
+ # ------------------------------------------------------------------------
+ #np# replace trilinoscouplings with the name of the package being autotool'ed here
+-TRILINOSCOUPLINGS_LIB = libtrilinoscouplings.a
++TRILINOSCOUPLINGS_LIB = libtrilinoscouplings.la
+ 
+ #np# replace trilinoscouplings with the name of the package being autotool'ed here
+ TRILINOSCOUPLINGS_H = \
+@@ -213,7 +213,7 @@
+ 	$(EPETRAEXT_AMESOS_ISORROPIA_H)      
+ 
+ #np# replace trilinoscouplings with the name of the package being autotool'ed here
+-libtrilinoscouplings_a_SOURCES = \
++libtrilinoscouplings_la_SOURCES = \
+ 	$(CORE) \
+ 	$(UTIL) \
+ 	$(IFPACK_ML) \
+@@ -223,7 +223,7 @@
+ 	$(EPETRAEXT_AMESOS_ISORROPIA)
+ 
+ 
+-EXTRA_libtrilinoscouplings_a_SOURCES = \
++EXTRA_libtrilinoscouplings_la_SOURCES = \
+ 	$(EXTRA_IFPACK_ML) \
+ 	$(EXTRA_IFPACK_ML_H) \
+ 	$(EXTRA_NOX_ML) \
+@@ -268,13 +268,14 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libtrilinoscouplings_a_LIBADD = $(XTRALDADD)
++libtrilinoscouplings_la_LIBADD = $(XTRALDADD)
++libtrilinoscouplings_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+-lib_LIBRARIES = $(TRILINOSCOUPLINGS_LIB)
++lib_LTLIBRARIES = $(TRILINOSCOUPLINGS_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/triutils/configure.ac trilinos-9.0.2-libtool/packages/triutils/configure.ac
+--- trilinos-9.0.2/packages/triutils/configure.ac	2008-01-03 22:54:09.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/triutils/configure.ac	2009-02-22 13:56:31.000000000 +0100
+@@ -115,7 +115,7 @@
+ AC_PROG_CXX(CC g++ c++ cxx)
+ BASE_CXX=${CXX}
+ #AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for --enable-debug, --enable-optimize, --enable-profile, --enable-purify
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/triutils/src/Makefile.am trilinos-9.0.2-libtool/packages/triutils/src/Makefile.am
+--- trilinos-9.0.2/packages/triutils/src/Makefile.am	2008-07-11 18:53:30.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/triutils/src/Makefile.am	2009-02-19 22:18:59.000000000 +0100
+@@ -155,7 +155,7 @@
+ # Aztec library specifications
+ # ------------------------------------------------------------------------
+ 
+-TRIUTILS_LIB = libtriutils.a
++TRIUTILS_LIB = libtriutils.la
+ 
+ 
+ TRIUTILS_H = \
+@@ -172,7 +172,7 @@
+ 	$(MPI_H) \
+ 	$(MPISMP_H)
+ 
+-libtriutils_a_SOURCES = \
++libtriutils_la_SOURCES = \
+ 	$(CORE) \
+ 	$(WITH_CPP) \
+ 	$(UTIL) \
+@@ -206,13 +206,15 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libtriutils_a_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD)
++libtriutils_la_LIBADD = $(TRILINOS_TEMPLATE_OBJS) $(XTRALDADD) \
++		       ../../epetra/src/libepetra.la
++libtriutils_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+-lib_LIBRARIES = $(TRIUTILS_LIB)
++lib_LTLIBRARIES = $(TRIUTILS_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/triutils/test/Read/Makefile.am trilinos-9.0.2-libtool/packages/triutils/test/Read/Makefile.am
+--- trilinos-9.0.2/packages/triutils/test/Read/Makefile.am	2006-01-31 19:17:27.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/triutils/test/Read/Makefile.am	2009-02-19 22:18:59.000000000 +0100
+@@ -74,8 +74,8 @@
+ AM_CPPFLAGS = $(EXPORT_INC_PATH)
+ 
+ read_test_DEPENDENCIES = \
+-	$(top_builddir)/../epetra/src/libepetra.a \
+-	$(top_builddir)/src/libtriutils.a 
++	$(top_builddir)/../epetra/src/libepetra.la \
++	$(top_builddir)/src/libtriutils.la 
+ 
+ read_test_CXXFLAGS = -I$(top_srcdir)/src
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/WebTrilinos/configure.ac trilinos-9.0.2-libtool/packages/WebTrilinos/configure.ac
+--- trilinos-9.0.2/packages/WebTrilinos/configure.ac	2008-09-19 22:23:16.000000000 +0200
++++ trilinos-9.0.2-libtool/packages/WebTrilinos/configure.ac	2009-02-19 22:18:59.000000000 +0100
+@@ -104,7 +104,7 @@
+ AC_PROG_CC(cc gcc)
+ AC_PROG_CXX(CC g++ gcc c++ cxx)
+ AC_PROG_F77(f77 g77 f90 xlf90)
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # ------------------------------------------------------------------------
+ # Checks for extra flags
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/zoltan/configure.ac trilinos-9.0.2-libtool/packages/zoltan/configure.ac
+--- trilinos-9.0.2/packages/zoltan/configure.ac	2009-01-07 17:59:09.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/zoltan/configure.ac	2009-02-19 22:29:24.000000000 +0100
+@@ -134,7 +134,7 @@
+ AC_PROG_F77(f77 g77 gfortran f90 xlf90 f95)
+ fi
+ 
+-AC_PROG_RANLIB
++AC_PROG_LIBTOOL
+ 
+ # Check if --with-flags present, prepend any specs to FLAGS
+ 
+diff -Naur --exclude '*~' --exclude '*.orig' --exclude '*.rej' trilinos-9.0.2/packages/zoltan/src/Makefile.am trilinos-9.0.2-libtool/packages/zoltan/src/Makefile.am
+--- trilinos-9.0.2/packages/zoltan/src/Makefile.am	2009-01-07 17:59:10.000000000 +0100
++++ trilinos-9.0.2-libtool/packages/zoltan/src/Makefile.am	2009-02-22 14:25:54.000000000 +0100
+@@ -368,7 +368,7 @@
+ # ------------------------------------------------------------------------
+ # Zoltan library specifications
+ # ------------------------------------------------------------------------
+-ZOLTAN_LIB = libzoltan.a
++ZOLTAN_LIB = libzoltan.la
+ 
+ ZOLTAN_H = \
+ 	$(ALL_H) \
+@@ -392,7 +392,7 @@
+ 	$(UTILITIES_H) \
+ 	$(ZZ_H)
+ 
+-libzoltan_a_SOURCES = \
++libzoltan_la_SOURCES = \
+ 	$(ALL) \
+ 	$(COLORING) \
+ 	$(HA) \
+@@ -414,7 +414,7 @@
+ 	$(UTILITIES) \
+ 	$(ZZ)
+ 
+-EXTRA_libzoltan_a_SOURCES = \
++EXTRA_libzoltan_la_SOURCES = \
+ 	$(EXTRA_OCT_H) \
+ 	$(EXTRA_OCT) \
+ 	$(EXTRA_PARMETIS_INTERFACE_H) \
+@@ -451,14 +451,15 @@
+ # be sure to include these, and this is the hack to do it.
+ # ------------------------------------------------------------------------
+ 
+-libzoltan_a_LIBADD = $(XTRALDADD)
++libzoltan_la_LIBADD = $(XTRALDADD)
++libzoltan_la_LDFLAGS = -release $(VERSION)
+ 
+ # ------------------------------------------------------------------------
+ # List of all libraries to install in $(libexecdir)
+ # ------------------------------------------------------------------------
+ 
+ #np# replace new_package with the name of the package being autotool'ed here
+-lib_LIBRARIES = $(ZOLTAN_LIB)
++lib_LTLIBRARIES = $(ZOLTAN_LIB)
+ 
+ # ------------------------------------------------------------------------
+ # List of all headers to install in $(includedir)

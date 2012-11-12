@@ -1,0 +1,24 @@
+diff -Naur --exclude '*~' trilinos-9.0.2/packages/ml/src/Coarsen/ml_agg_min_energy.cpp trilinos-9.0.2-fix-format-errors/packages/ml/src/Coarsen/ml_agg_min_energy.cpp
+--- trilinos-9.0.2/packages/ml/src/Coarsen/ml_agg_min_energy.cpp	2008-08-01 20:14:18.000000000 +0200
++++ trilinos-9.0.2-fix-format-errors/packages/ml/src/Coarsen/ml_agg_min_energy.cpp	2009-02-22 14:59:31.000000000 +0100
+@@ -1252,7 +1252,7 @@
+       for(int i = 0; i < rows; i++)
+ 	{
+ 	  sprintf(str, "%d   %d      %1.16e \n", i+1, j+1, mat[counter]);
+-	  fprintf(fid, str);  
++	  fprintf(fid, "%s", str);  
+ 	  counter++;
+ 	}
+     }		
+diff -Naur --exclude '*~' trilinos-9.0.2/packages/triutils/src/iohb.cpp trilinos-9.0.2-fix-format-errors/packages/triutils/src/iohb.cpp
+--- trilinos-9.0.2/packages/triutils/src/iohb.cpp	2007-08-23 21:05:41.000000000 +0200
++++ trilinos-9.0.2-fix-format-errors/packages/triutils/src/iohb.cpp	2009-02-21 13:48:24.000000000 +0100
+@@ -1616,7 +1616,7 @@
+ 
+ void IOHBTerminate(const char* message) 
+ {
+-   std::fprintf(stderr,message);
++   std::fprintf(stderr,"%s",message);
+    std::exit(1);
+ }
+ 
