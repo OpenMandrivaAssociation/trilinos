@@ -46,7 +46,7 @@ Release:	%{release}
 Summary:	Parallel solver algorithms and libraries 
 License:	GPLv2
 Group:		System/Libraries
-URL:		http://trilinos.sandia.gov/
+URL:		https://trilinos.sandia.gov/
 Source:		http://trilinos.sandia.gov/download/files/%name-%version.tar.gz
 Patch1:		%{name}-9.0.2-libtool.patch
 Patch2:		%{name}-9.0.2-fix-format-errors.patch
