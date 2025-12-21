@@ -52,6 +52,9 @@ Patch1:		%{name}-9.0.2-libtool.patch
 Patch2:		%{name}-9.0.2-fix-format-errors.patch
 Patch3:		%{name}-9.0.2-fix-install.patch
 %if %{mdkversion} <= 1020
+BuildRequires:	autoconf
+BuildRequires:	libtool-base
+BuildRequires:	slibtool
 BuildRequires:	gcc-g77
 %else
 BuildRequires:	gcc-gfortran
